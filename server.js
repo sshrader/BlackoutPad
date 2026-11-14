@@ -1,11 +1,11 @@
 'use strict';
-// BlackoutPad: anyone can launch a pump.fun coin. Each launch claims one of a small set of bunker survivor characters as its logo,
+// BlackoutPad: anyone can launch a pump.fun coin. Each launch claims one of a small set of power-grid assets as its logo,
 // and that agent is then locked to the coin. The launcher signs everything from their own wallet.
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const art = require('./blackout');
+const art = require('./grid');
 const chain = require('./chain');
 const { statusReport } = require('./report');
 
@@ -161,19 +161,8 @@ function loadBears(c) {
 function saveBears(c, d) { const f = bearsFile(c); fs.writeFileSync(f + '.tmp', JSON.stringify(d)); fs.renameSync(f + '.tmp', f); }
 const holdFor = (d, token) => { for (const k of Object.keys(d.holds)) if (d.holds[k].token === token) return { slot: k === 'F' ? 'F' : Number(k), hold: d.holds[k] }; return null; };
 const bearLabel = (slot) => (slot === 'F' ? 'founder' : slot + 1); // what the pages are told
-const FAVICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0c"/><path d="M38 6 14 36h15l-7 22 28-34H35z" fill="#ffb347"/><path d="M36 6 24 21l14 3z" fill="#ffd98a" opacity=".5"/></svg>';
-const PRIME = { name: 'BlackoutPad', role: 'FLAGSHIP', blurb: 'The one-of-one flagship. A gas-mask commander in a gold crown, sweating gold. Reserved for BlackoutPad’s founder wallet.', ability: art.ABILITIES.FLAGSHIP };
-// The 3D views fetch an agent's voxels. They only depend on the image secret, so they are cached and gzipped.
-const voxCache = new Map();
-function sendVoxels(req, res, slot) {
-  const key = imageSecret() + ':' + slot;
-  const model = () => (slot === 'F' ? art.founderVoxels() : art.agentVoxels(slot, imageSecret()));
-  let e = voxCache.get(key);
-  if (!e) { const raw = Buffer.from(JSON.stringify(model())); e = { raw, gz: require('zlib').gzipSync(raw) }; voxCache.set(key, e); }
-  const gz = /\bgzip\b/.test(String(req.headers['accept-encoding'] || ''));
-  res.writeHead(200, Object.assign({ 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300', 'Content-Length': (gz ? e.gz : e.raw).length }, gz ? { 'Content-Encoding': 'gzip', Vary: 'Accept-Encoding' } : {}, { 'X-Content-Type-Options': 'nosniff' }));
-  res.end(gz ? e.gz : e.raw);
-}
+const FAVICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#030304"/><path d="M38 6 14 36h15l-7 22 28-34H35z" fill="#39ff88"/><path d="M36 6 24 21l14 3z" fill="#9dffc4" opacity=".5"/></svg>';
+const PRIME = { name: 'BlackoutPad', role: 'FLAGSHIP', blurb: 'The one-of-one flagship. A substation in a gold crown, sweating gold. Reserved for BlackoutPad’s founder wallet.', ability: art.ABILITIES.FLAGSHIP };
 const shortAddr = (a) => a.slice(0, 4) + '…' + a.slice(-4);
 
 // BTC / SOL spot prices for the header ticker (cached 30s, tries several free sources)
@@ -211,7 +200,7 @@ function bearsState(res) {
   send(res, 200, {
     cluster: c.cluster, total: c.total, maxBuy: c.maxBuy, silhouette: art.silhouette(), bears, recent,
     open: bears.filter((b) => b.state === 'open').length,
-    teams: ['PREPPER', 'DOOMER'].reduce((o, t) => { const m = bears.filter((b) => b.agent.team === t); o[t] = { total: m.length, launched: m.filter((b) => b.state === 'launched').length, open: m.filter((b) => b.state === 'open').length }; return o; }, {}),
+    teams: ['GENERATOR', 'DISTRIBUTOR'].reduce((o, t) => { const m = bears.filter((b) => b.agent.team === t); o[t] = { total: m.length, launched: m.filter((b) => b.state === 'launched').length, open: m.filter((b) => b.state === 'open').length }; return o; }, {}),
     founder: c.founderWallet ? (() => { const L = d.launched.F, H = d.holds.F; return { agent: PRIME, state: L ? 'launched' : H ? 'held' : 'reserved', short: shortAddr(c.founderWallet), symbol: L ? L.symbol : null, name: L ? L.name : null, mint: L ? L.mint : null }; })() : null,
     platform: c.platformWallet ? { wallet: c.platformWallet, bps: PLATFORM_BPS } : null,
   });
@@ -565,10 +554,7 @@ const server = http.createServer(async (req, res) => {
     { const m = /^\/api\/coin\/([1-9A-HJ-NP-Za-km-z]{32,44})$/.exec(p); if (m) return await coinInfo(res, m[1]); }
     if (/^\/coin\/[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(p)) { res.writeHead(200, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache', 'X-Frame-Options': 'DENY', 'X-Content-Type-Options': 'nosniff' }); return res.end(fs.readFileSync(COIN_PAGE)); }
     if (p === '/admin') { res.writeHead(200, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-store', 'X-Frame-Options': 'DENY', 'X-Content-Type-Options': 'nosniff', 'X-Robots-Tag': 'noindex' }); return res.end(fs.readFileSync(path.join(__dirname, 'admin.html'))); }
-    if (p === '/intro3d.js' || p === '/vox.js') return serveStatic(res, path.join(__dirname, p.slice(1)), 'application/javascript; charset=utf-8', { 'Cache-Control': 'no-cache' });
-    if (p === '/api/founder/voxels.json') { if (!cfg().founderWallet) return send(res, 404, { error: 'Not found' }); return sendVoxels(req, res, 'F'); }
-    { const m = /^\/api\/agent\/(\d+)\/voxels\.json$/.exec(p); if (m) { const c = cfg(), n = Number(m[1]); if (n < 1 || n > c.total) return send(res, 404, { error: 'Not found' }); return sendVoxels(req, res, n - 1); } }
-    if (p === '/cave.js') return serveStatic(res, path.join(__dirname, 'cave.js'), 'application/javascript; charset=utf-8', { 'Cache-Control': 'no-cache' });
+    if (p === '/gridfx.js') return serveStatic(res, path.join(__dirname, p.slice(1)), 'application/javascript; charset=utf-8', { 'Cache-Control': 'no-cache' });
     if (p === '/api/health') return send(res, 200, { ok: true });
     if (p === '/api/founder.png') { if (!cfg().founderWallet) return send(res, 404, { error: 'Not found' }); return send(res, 200, art.founderPng(384), { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=300' }); }
     { const m = /^\/api\/preview\/(\d+)\.png$/.exec(p); if (m) { const c = cfg(), n = Number(m[1]); if (n < 1 || n > c.total) return send(res, 404, { error: 'Not found' }); return send(res, 200, art.png(n - 1, imageSecret(), 384), { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=300' }); } }

@@ -80,9 +80,7 @@ function check(label, ok, extra) { console.log((ok ? 'PASS ' : 'FAIL ') + label 
   const sv = Buffer.from(await r.arrayBuffer());
   check('every agent can be previewed', r.status === 200 && sv.subarray(1, 4).toString() === 'PNG');
   check('preview out of range is a 404', (await fetch(base + '/api/preview/5.png')).status === 404);
-  r = await fetch(base + '/api/agent/1/voxels.json');
-  const vj = await r.json();
-  check('agent voxel model is served', r.status === 200 && vj.cells.length > 300 && vj.cells[0].length === 5 && Array.isArray(vj.palette) && (await fetch(base + '/api/agent/9/voxels.json')).status === 404);
+  check('the voxel endpoints are gone', (await fetch(base + '/api/agent/1/voxels.json')).status === 404);
   check('the old admin launch page is gone', (await fetch(base + '/launch')).status === 404);
   const home = await fetch(base + '/');
   check('home page is BlackoutPad', home.status === 200 && (await home.text()).includes('BlackoutPad'));
@@ -185,8 +183,8 @@ function check(label, ok, extra) { console.log((ok ? 'PASS ' : 'FAIL ') + label 
   check('an unknown coin has no page', (await fetch(base + '/api/coin/' + b58encode(crypto.randomBytes(32)))).status === 404);
   r = await fetch(base + '/coin/' + mint);
   check('the coin page is served', r.status === 200 && (await r.text()).includes('Top holders'));
-  r = await fetch(base + '/cave.js');
-  check('the cave script is served', r.status === 200 && (await r.text()).includes('window.Cave'));
+  r = await fetch(base + '/gridfx.js');
+  check('the grid script is served', r.status === 200 && (await r.text()).includes('GridIntro'));
   r = await post('/api/launched', { mint, signature: s4 }, xa2.json.token);
   check('the used hold cannot lock again', r.status === 401);
   const again = await reserve(e, SL);
@@ -292,11 +290,11 @@ function check(label, ok, extra) { console.log((ok ? 'PASS ' : 'FAIL ') + label 
   server.close(); fakeRpc.close();
   // agent art and the agent report, no server needed
   {
-    const artM = require('../blackout.js'), { statusReport } = require('../report.js');
+    const artM = require('../grid.js'), { statusReport } = require('../report.js');
     const names = new Set(), looks = new Set();
-    for (let n = 0; n < 24; n++) { const t = artM.traitsFor(n, 'unit-secret'); names.add(t.name); looks.add((() => { const m = artM.agentVoxels(n, 'unit-secret'); return JSON.stringify(m.cells.map((c) => [c[0], c[1], c[2], m.palette[c[4]]])); })()); }
+    for (let n = 0; n < 24; n++) { const t = artM.traitsFor(n, 'unit-secret'); names.add(t.name); looks.add((() => { return artM.png(n, 'unit-secret', 64).toString('base64'); })()); }
     check('agents in a set each have their own name and their own picture', names.size === 24 && looks.size === 24);
-    check('even slots are preppers, odd slots are doomers, and they use their own classes', [0, 1, 2, 3, 4, 5].every((n) => { const a = artM.agentFor(n, 'unit-secret'); return a.team === (n % 2 ? 'DOOMER' : 'PREPPER') && artM.ROLES[a.role].team === (n % 2 ? 'doomer' : 'prepper'); }));
+    check('even slots are generators, odd slots are distributors, and they use their own classes', [0, 1, 2, 3, 4, 5].every((n) => { const a = artM.agentFor(n, 'unit-secret'); return a.team === (n % 2 ? 'DISTRIBUTOR' : 'GENERATOR') && artM.ROLES[a.role].team === (n % 2 ? 'distributor' : 'generator'); }));
     const ag = artM.agentFor(0, 'unit-secret'), ag2 = artM.agentFor(0, 'unit-secret'), ag3 = artM.agentFor(0, 'other-secret');
     check('an agent is the same every time for the same secret', JSON.stringify(ag) === JSON.stringify(ag2) && ag.name && ag.role && ag.blurb);
     check('a different secret gives a different set', [0, 1, 2, 3].some((n) => JSON.stringify(artM.agentFor(n, 'unit-secret')) !== JSON.stringify(artM.agentFor(n, 'other-secret'))) && ag3.name);
@@ -324,15 +322,15 @@ function check(label, ok, extra) { console.log((ok ? 'PASS ' : 'FAIL ') + label 
       const cc = await chainM.coinChain(mock, MINT, DEV, '');
       check('the audit reads the mint and freeze authorities', cc.authority && cc.authority.mint === null && cc.authority.freeze === 'FreezeFreezeFreeze1111');
       check('the launch scan finds early buyers and what they hold', cc.launch && cc.launch.early === 2 && cc.launch.wallets === 1 && cc.launch.heldCount === 1 && cc.launch.heldPct === 20, JSON.stringify(cc.launch));
-      const au = statusReport({ name: 'A', role: 'INSPECTOR', ability: require('../blackout.js').ABILITIES.INSPECTOR }, {}, cc, 1).ability, hu = statusReport({ name: 'H', role: 'SCAVENGER', ability: require('../blackout.js').ABILITIES.SCAVENGER }, {}, cc, 1).ability;
+      const au = statusReport({ name: 'A', role: 'PYLON', ability: require('../grid.js').ABILITIES.PYLON }, {}, cc, 1).ability, hu = statusReport({ name: 'H', role: 'COOLING', ability: require('../grid.js').ABILITIES.COOLING }, {}, cc, 1).ability;
       check('auditor and hunter report what they found', au.lines[0].level === 'good' && au.lines[1].level === 'warn' && hu.lines[1].level === 'warn' && /20%/.test(hu.lines[1].text));
-      const wd = statusReport({ name: 'W', role: 'SIREN', ability: require('../blackout.js').ABILITIES.SIREN }, {}, { supply: 1e9, devHoldPct: 10, holders: [], curve: { complete: false, progress: 40, raisedSol: 30, vSol: 60, vTok: 700e6 } }, 1).ability;
+      const wd = statusReport({ name: 'W', role: 'BATTERY', ability: require('../grid.js').ABILITIES.BATTERY }, {}, { supply: 1e9, devHoldPct: 10, holders: [], curve: { complete: false, progress: 40, raisedSol: 30, vSol: 60, vTok: 700e6 } }, 1).ability;
       check('warden works out a sale from the curve reserves', /sold everything/.test(wd.lines[1].text) && /fall about/.test(wd.lines[1].text), JSON.stringify(wd.lines));
     }
-    const abs = require('../blackout.js').ABILITIES, rr = (role, w) => statusReport({ name: 'X', role, ability: abs[role] }, { launchedAt: 1000 }, { curve: { complete: false, progress: 52, raisedSol: 44, marketCapSol: 80 }, devHoldPct: 3, top10Pct: 20, holderCount: 41, errors: [] }, 3 * 3600000, w).ability;
+    const abs = require('../grid.js').ABILITIES, rr = (role, w) => statusReport({ name: 'X', role, ability: abs[role] }, { launchedAt: 1000 }, { curve: { complete: false, progress: 52, raisedSol: 44, marketCapSol: 80 }, devHoldPct: 3, top10Pct: 20, holderCount: 41, errors: [] }, 3 * 3600000, w).ability;
     const hist = { first: { at: 0, cap: 50, holders: 20, dev: 8, top10: 30 }, peak: { cap: { v: 100, at: 1e5 }, holders: { v: 45, at: 2e5 }, curve: { v: 55, at: 2e5 } }, marks: { 25: 6e4 }, devMax: 8, n: 6 };
     check('every class has its own named ability', Object.keys(abs).length === 9 && new Set(Object.values(abs).map((a) => a.name)).size === 9);
-    check('abilities compare now with what the agent saw before', /up 21/.test(rr('LOOKOUT', hist).lines[1].text) && /up 60%/.test(rr('PROPHET', hist).lines[1].text) && rr('WATCHMAN', hist).lines.some((l) => l.level === 'warn' && /fell from 8%/.test(l.text)) && /25%/.test(rr('QUARTERMASTER', hist).lines[0].text));
+    check('abilities compare now with what the agent saw before', /up 21/.test(rr('TURBINE', hist).lines[1].text) && /up 60%/.test(rr('TRANSFORMER', hist).lines[1].text) && rr('SUBSTATION', hist).lines.some((l) => l.level === 'warn' && /fell from 8%/.test(l.text)) && /25%/.test(rr('SOLAR', hist).lines[0].text));
     check('abilities work with no history and the flagship sweeps them all', Object.keys(abs).every((k) => rr(k, null).lines.length > 0) && rr('FLAGSHIP', hist).lines.length === 11);
     const done = statusReport({ name: 'ZED', role: 'NAVIGATOR' }, {}, { curve: { complete: true, progress: 100, raisedSol: 85, marketCapSol: 400 } }, 1);
     check('a graduated coin says so', done.lines[0].level === 'good' && /graduated/.test(done.lines[0].text));

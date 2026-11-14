@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<link rel="icon" href="/favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="/favicon.svg?v=4" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Coin · BlackoutPad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0a0c;--surface:rgba(22,19,14,.92);--surface2:#1c1812;--line:#3d3425;--fg:#f4eddd;--dim:#cfc3a9;--ember:#ff7a1a;--gold:#ffb347;--good:#9be29b;--bad:#ff6a5a;
+:root{--bg:#030304;--surface:rgba(7,8,19,.92);--surface2:#0b0c1a;--line:#1a1d3d;--fg:#e8ecff;--dim:#9aa3c7;--ember:#1ff2ff;--gold:#39ff88;--good:#39ff88;--bad:#ff3d6e;
 --display:'Space Grotesk',Inter,system-ui,sans-serif;--sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.55;
@@ -36,7 +36,7 @@ h1{font-family:var(--sans);font-weight:800;font-size:clamp(30px,6vw,48px);line-h
 .desc{color:var(--dim);max-width:60ch;margin:8px 0 14px;overflow-wrap:anywhere}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .btn{font:700 14px var(--sans);border-radius:99px;padding:10px 18px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);cursor:pointer;text-decoration:none;display:inline-block}
-.btn.go{background:linear-gradient(135deg,var(--gold),var(--ember));color:#0a0a0c;border:0}
+.btn.go{background:var(--gold);color:#030304;border:0}
 h2{font-family:var(--sans);font-weight:800;font-size:22px;margin:34px 0 12px;text-shadow:0 1px 0 #000}
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 @media(max-width:700px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -45,7 +45,7 @@ h2{font-family:var(--sans);font-weight:800;font-size:22px;margin:34px 0 12px;tex
 .tile b{font:800 22px var(--sans);overflow-wrap:anywhere}
 .tile i{display:block;font:500 13px var(--sans);font-style:normal;color:var(--dim);margin-top:2px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
-.bar{height:16px;border:1px solid var(--line);border-radius:3px;background:#14110c;overflow:hidden}
+.bar{height:16px;border:1px solid var(--line);border-radius:3px;background:#030304;overflow:hidden}
 .bar>div{height:100%;background:linear-gradient(90deg,var(--ember),var(--gold))}
 .kv{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:8px 14px;font-size:14px}
 @media(max-width:560px){.kv{grid-template-columns:minmax(0,1fr)}.kv dt{margin-top:6px}}
@@ -57,7 +57,7 @@ td{padding:8px;border-bottom:1px solid rgba(77,56,38,.5);vertical-align:middle}
 td.n{font-family:var(--mono);width:34px;color:var(--dim)}
 td.p{font-family:var(--mono);width:84px;text-align:right}
 td.b{width:34%}
-td .mini{height:8px;background:#14110c;border-radius:2px;overflow:hidden}
+td .mini{height:8px;background:#030304;border-radius:2px;overflow:hidden}
 td .mini>div{height:100%;background:var(--gold)}
 .tag{font:600 13px var(--mono);border:1px solid var(--line);border-radius:99px;padding:1px 7px;margin-left:6px;color:var(--dim)}
 .tag.dev{color:var(--gold);border-color:var(--gold)}
@@ -92,7 +92,7 @@ td .mini>div{height:100%;background:var(--gold)}
   <a class="back" href="/">← All friends</a>
 </header>
 
-<div id="err" class="panel"><b>That coin is not in BlackoutPad.</b><p class="note">Only coins launched here have a page. <a href="/">Back to the survivors</a>.</p></div>
+<div id="err" class="panel"><b>That coin is not in BlackoutPad.</b><p class="note">Only coins launched here have a page. <a href="/">Back to the grid</a>.</p></div>
 
 <div id="page" hidden>
   <section class="hero">
@@ -127,13 +127,12 @@ td .mini>div{height:100%;background:var(--gold)}
 </div>
 </div>
 
-<script src="/cave.js"></script>
-<script src="/vox.js"></script>
+<script src="/gridfx.js"></script>
 <script>
 (function(){
   var $=function(id){return document.getElementById(id)};
   var mint=location.pathname.split('/').pop();
-  var cave=new Cave($('bg'),{bears:false,ambient:.2,glow:1.0,fps:12});cave.start();
+  var cave=new GridBg($('bg'),{fps:10});cave.start();
   function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
   function short(a){return a?a.slice(0,4)+'…'+a.slice(-4):'unknown'}
   function fmt(n,d){if(n==null||!isFinite(n))return '–';var a=Math.abs(n);if(a>=1e9)return (n/1e9).toFixed(2)+'B';if(a>=1e6)return (n/1e6).toFixed(2)+'M';if(a>=1e3)return (n/1e3).toFixed(1)+'K';return n.toFixed(d==null?2:d)}
@@ -147,7 +146,7 @@ td .mini>div{height:100%;background:var(--gold)}
     var main=j.cluster==='mainnet',oc=j.onchain||{},cv=oc.curve;
     document.title=j.name+' ($'+j.symbol+') · BlackoutPad';
     var n=$('net');n.textContent=main?'mainnet':'devnet · test';n.className='net'+(main?' main':'');
-    $('pic').src=j.bear==='F'?'/api/founder.png':'/api/preview/'+j.bear+'.png';$('pic').alt=j.name;if(window.VoxelView)VoxelView.card($('pic'),j.bear==='F'?'/api/founder/voxels.json':'/api/agent/'+j.bear+'/voxels.json',{radius:'6px'});
+    $('pic').src=j.bear==='F'?'/api/founder.png':'/api/preview/'+j.bear+'.png';$('pic').alt=j.name;
     $('name').textContent=j.name;$('tick').textContent='$'+j.symbol;
     var chips=$('chips');chips.textContent='';
     chips.appendChild(el('span','chip'+(j.founder?' good':''),j.founder?'BlackoutPad · flagship, one of one':((j.agent?j.agent.name+' · '+j.agent.role.toLowerCase():'Agent #'+String(j.bear).padStart(2,'0'))+' · '+String(j.bear).padStart(2,'0')+' of '+j.total)));
