@@ -1,0 +1,172 @@
+'use strict';
+// The 3D intro: bunker survivors wander a blacked-out street at night, panicking, while hazard lights blink and sirens flash.
+// Plain WebGL2, no libraries. Intro3D.create(canvas, { agents: [voxelData, ...] }) -> { start, stop, renderAt(t) } or null.
+(function(){
+  var VS='#version 300 es\nin vec3 pos;in vec3 nrm;in vec4 aCell;in vec3 aCol;uniform mat4 uVP;uniform mat4 uModel;uniform mat3 uRot;uniform vec3 uOrg;uniform vec2 uPivot;uniform vec3 uSwing;uniform vec2 uArmA;uniform vec2 uArmM;uniform float uLevel;uniform vec2 uHand;uniform float uLean;uniform vec2 uPz;uniform vec2 uTail;out vec3 vCol;out vec3 vN;out float vE;out float vW;\n'
+   +'vec3 rot(vec3 q,float py,float pz,float a){float c=cos(a),s=sin(a),dy=q.y-py,dz=q.z-pz;return vec3(q.x,py+dy*c-dz*s,pz+dy*s+dz*c);}\n'
+   +'void main(){float e=mod(aCell.w,2.0);float g=floor(aCell.w/2.0);vec3 q=aCell.xyz;'
+   +'if(g>.5){float ph=sin(uSwing.x);'
+   +'if(g>8.5){float c=cos(uTail.y),s=sin(uTail.y),dx=q.x-15.5,dz=q.z-uTail.x;q=vec3(15.5+dx*c-dz*s,q.y,uTail.x+dx*s+dz*c);}'
+   +'else if(g>6.5){float sg=g<7.5?-1.0:1.0;q=rot(q,uPivot.x,uPz.y,ph*uSwing.y*sg);}'
+   +'else if(g<2.5){float sg=g<1.5?1.0:-1.0;q=rot(q,uPivot.x,uPz.x,ph*uSwing.y*sg);}'
+   +'else{bool R=abs(g-3.0)<.5||abs(g-5.0)<.5;float sg=R?-1.0:1.0;float m=R?uArmM.x:uArmM.y;float ov=R?uArmA.x:uArmA.y;float a=mix(ph*uSwing.z*sg,ov,m);'
+   +'if(g>4.5)q=rot(q,uHand.x,uHand.y,-ov*m*uLevel);q=rot(q,uPivot.y,16.0,a);}}'
+   +'q=rot(q,0.0,16.0,uLean);'
+   +'vec3 p=q-uOrg+pos;gl_Position=uVP*(uModel*vec4(p,1.0));vN=uRot*nrm;vCol=aCol;vE=e;vW=gl_Position.w;}';
+  var FS='#version 300 es\nprecision mediump float;in vec3 vCol;in vec3 vN;in float vE;in float vW;uniform vec3 uCol;uniform float uOver;uniform float uEmit;uniform float uBoost;uniform vec3 uTint;uniform vec3 uFog;uniform vec2 uFogR;out vec4 o;\n'
+   +'void main(){vec3 base=uOver>.5?uCol:vCol;vec3 n=normalize(vN);float d=max(dot(n,normalize(vec3(-.35,.7,.6))),0.0);float rim=pow(1.0-max(n.z,0.0),2.0)*.12;'
+   +'vec3 c=base*(.4+.8*d)+rim*vec3(.9,.9,1.0);if(vE>.5||uEmit>.5)c=base*(1.0+.5*uBoost)+.05*uBoost;c*=uTint;'
+   +'float f=clamp((vW-uFogR.x)/(uFogR.y-uFogR.x),0.0,1.0);o=vec4(mix(c,uFog,f),1.0);}';
+  var CUBE=(function(){var f=[[0,0,1,[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]],[0,0,-1,[1,-1,-1],[-1,-1,-1],[-1,1,-1],[1,1,-1]],[1,0,0,[1,-1,1],[1,-1,-1],[1,1,-1],[1,1,1]],[-1,0,0,[-1,-1,-1],[-1,-1,1],[-1,1,1],[-1,1,-1]],[0,1,0,[-1,1,1],[1,1,1],[1,1,-1],[-1,1,-1]],[0,-1,0,[-1,-1,-1],[1,-1,-1],[1,-1,1],[-1,-1,1]]],v=[],ix=[];
+    f.forEach(function(q,i){for(var k=3;k<7;k++)v.push(q[k][0]*.5,q[k][1]*.5,q[k][2]*.5,q[0],q[1],q[2]);var b=i*4;ix.push(b,b+1,b+2,b,b+2,b+3)});return{v:new Float32Array(v),i:new Uint16Array(ix)}})();
+  function hex(c){var n=parseInt(c.slice(1,7),16);return[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]}
+  function mul(a,b){var o=new Float32Array(16);for(var c=0;c<4;c++)for(var r=0;r<4;r++){var q=0;for(var k=0;k<4;k++)q+=a[k*4+r]*b[c*4+k];o[c*4+r]=q}return o}
+  function mul3(a,b){var o=new Float32Array(9);for(var c=0;c<3;c++)for(var r=0;r<3;r++){var q=0;for(var k=0;k<3;k++)q+=a[k*3+r]*b[c*3+k];o[c*3+r]=q}return o}
+  function persp(fov,asp,n,f){var t=1/Math.tan(fov*Math.PI/360);return new Float32Array([t/asp,0,0,0,0,t,0,0,0,0,(f+n)/(n-f),-1,0,0,2*f*n/(n-f),0])}
+  function look(e,c){var f=[c[0]-e[0],c[1]-e[1],c[2]-e[2]],l=Math.hypot(f[0],f[1],f[2]);f=f.map(function(v){return v/l});
+    var s=[f[1]*0-f[2]*1,f[2]*0-f[0]*0,f[0]*1-f[1]*0];s=[-f[2],0,f[0]];l=Math.hypot(s[0],s[2]);s=[s[0]/l,0,s[2]/l];
+    var u=[s[1]*f[2]-s[2]*f[1],s[2]*f[0]-s[0]*f[2],s[0]*f[1]-s[1]*f[0]];
+    return new Float32Array([s[0],u[0],-f[0],0,s[1],u[1],-f[1],0,s[2],u[2],-f[2],0,-(s[0]*e[0]+s[1]*e[1]+s[2]*e[2]),-(u[0]*e[0]+u[1]*e[1]+u[2]*e[2]),(f[0]*e[0]+f[1]*e[1]+f[2]*e[2]),1])}
+  // translate, then yaw and roll, then scale: returns the 4x4 model and the 3x3 rotation for normals
+  function trs(tx,ty,tz,yaw,roll,sx,sy,sz){var cy=Math.cos(yaw),sy_=Math.sin(yaw),cz=Math.cos(roll),sz_=Math.sin(roll);
+    var Ry=[cy,0,-sy_,0,1,0,sy_,0,cy],Rz=[cz,sz_,0,-sz_,cz,0,0,0,1],R=mul3(Ry,Rz);
+    return{m:new Float32Array([R[0]*sx,R[1]*sx,R[2]*sx,0,R[3]*sy,R[4]*sy,R[5]*sy,0,R[6]*sz,R[7]*sz,R[8]*sz,0,tx,ty,tz,1]),r:R}}
+  function rnd(seed){var a=seed>>>0;return function(){a=(a+0x6d2b79f5)|0;var t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}}
+  function smooth(x){x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)}
+  function sh(gl,t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(o));return o}
+
+  function create(canvas,opts){
+    var gl;try{gl=canvas.getContext('webgl2',{antialias:true,alpha:false,preserveDrawingBuffer:!!opts.keep})}catch(e){gl=null}
+    if(!gl||!opts.agents||!opts.agents.length)return null;
+    var pr=gl.createProgram();gl.attachShader(pr,sh(gl,gl.VERTEX_SHADER,VS));gl.attachShader(pr,sh(gl,gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);
+    if(!gl.getProgramParameter(pr,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(pr));
+    gl.useProgram(pr);
+    var L=function(n){return gl.getAttribLocation(pr,n)},U=function(n){return gl.getUniformLocation(pr,n)};
+    var vb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,CUBE.v,gl.STATIC_DRAW);
+    var ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,CUBE.i,gl.STATIC_DRAW);
+    var uArmA=U('uArmA'),uArmM=U('uArmM'),uLevel=U('uLevel'),uHand=U('uHand'),uLean=U('uLean'),uPz=U('uPz'),uTail=U('uTail'),uOrg=U('uOrg'),uPivot=U('uPivot'),uSwing=U('uSwing'),uVP=U('uVP'),uModel=U('uModel'),uRot=U('uRot'),uCol=U('uCol'),uOver=U('uOver'),uEmit=U('uEmit'),uBoost=U('uBoost');
+    gl.uniform3f(U('uTint'),1,1,1);gl.uniform3f(U('uFog'),.03,.035,.055);gl.uniform2f(U('uFogR'),70,200);
+    // an object is a set of instances (cells) in its own vertex array
+    function obj(data,max,dynamic){
+      var vao=gl.createVertexArray();gl.bindVertexArray(vao);
+      gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.enableVertexAttribArray(L('pos'));gl.vertexAttribPointer(L('pos'),3,gl.FLOAT,false,24,0);gl.enableVertexAttribArray(L('nrm'));gl.vertexAttribPointer(L('nrm'),3,gl.FLOAT,false,24,12);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);
+      var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,data||new Float32Array(max*7),dynamic?gl.DYNAMIC_DRAW:gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(L('aCell'));gl.vertexAttribPointer(L('aCell'),4,gl.FLOAT,false,28,0);gl.vertexAttribDivisor(L('aCell'),1);
+      gl.enableVertexAttribArray(L('aCol'));gl.vertexAttribPointer(L('aCol'),3,gl.FLOAT,false,28,16);gl.vertexAttribDivisor(L('aCol'),1);
+      return{vao:vao,buf:buf,n:data?data.length/7:0};
+    }
+    function voxObj(d){var pal=d.palette.map(hex),a=new Float32Array(d.cells.length*7);d.cells.forEach(function(c,i){var k=pal[c[4]];a.set([c[0],c[1],c[2],c[3],k[0],k[1],k[2]],i*7)});var o=obj(a);o.org=[d.cx==null?15.5:d.cx,0,d.cz==null?16:d.cz];o.pivot=d.pivot||[8,28];o.data=d;o.hand=d.gun?[d.gun.hand[1],d.gun.hand[2]]:[0,16];var gh=/^#/.test(d.glow||'')?hex(d.glow):[.3,1,.9];o.gcol=gh;return o}
+    var box=obj(new Float32Array([0,0,0,0,1,1,1]));box.org=[0,0,0];box.pivot=[0,0];
+    function draw(o,T,fx){fx=fx||{};gl.bindVertexArray(o.vao);gl.uniformMatrix4fv(uModel,false,T.m);gl.uniformMatrix3fv(uRot,false,T.r);
+      if(fx.col){gl.uniform1f(uOver,1);gl.uniform3f(uCol,fx.col[0],fx.col[1],fx.col[2])}else gl.uniform1f(uOver,0);
+      gl.uniform1f(uEmit,fx.emit?1:0);gl.uniform1f(uBoost,fx.boost||0);var og=o.org||[0,0,0],pv=o.pivot||[0,0];gl.uniform3f(uOrg,og[0],og[1],og[2]);gl.uniform2f(uPivot,pv[0],pv[1]);var po=fx.pose||MechPose.zero;gl.uniform3f(uSwing,fx.ph||0,po.leg,po.arm);gl.uniform2f(uArmA,po.aR,po.aL);gl.uniform2f(uArmM,po.mR,po.mL);gl.uniform1f(uLevel,po.lv);gl.uniform2f(uHand,o.hand?o.hand[0]:0,o.hand?o.hand[1]:16);gl.uniform1f(uLean,po.lean);var dd=o.data||{};gl.uniform2f(uPz,dd.pz?dd.pz[0]:16,dd.pz?dd.pz[1]:16);gl.uniform2f(uTail,dd.tailZ||0,Math.sin(time*(po.ts||4))*(po.tw||0));gl.drawElementsInstanced(gl.TRIANGLES,36,gl.UNSIGNED_SHORT,0,o.n)}
+    function bx(x,y,z,sx,sy,sz,col,boost){draw(box,trs(x,y,z,0,0,sx,sy,sz),{col:col,emit:true,boost:boost||0})}
+
+    var agents=opts.agents.slice(0,4).map(function(d){return voxObj(d)});
+    var S=.135,AX=17,AZ=9.5; // park half-sizes
+    var st=[],puffs=[],flies=[],time=0,raf=0,last=0,rr=rnd(11);
+    var OBS=[[-11,3.5,4.2],[10,-4.2,3.2],[-3,-6.3,2.2]]; // a stalled car, a patrol car and a sandbag wall: [x,z,radius] the survivors keep clear of
+    var BLD=(function(){var r=rnd(21),o=[];for(var i=-4;i<=4;i++){var w=7.2+r()*2.4,h=12+r()*11,x=i*9.4+(r()-.5)*1.4,c=.075+r()*.04,wins=[];var cols=Math.floor(w/1.75),rows=Math.floor(h/2.3);for(var a=0;a<cols;a++)for(var b=0;b<rows;b++){var q=r();wins.push({x:(a-(cols-1)/2)*1.75,y:1.6+b*2.3,lit:q<.1?1:q<.16?2:0,p:r()*9})}o.push({x:x,w:w,h:h,c:c,wins:wins})}return o})();
+    var EMB=(function(){var r=rnd(9),o=[];for(var i=0;i<70;i++)o.push({x:(r()-.5)*(AX*2+16),z:(r()-.5)*(AZ*2+12),y:r()*14,v:.5+r()*.9,p:r()*6});return o})();
+    function reset(){rr=rnd(11);puffs=[];flies=[];var n=agents.length;
+      st=agents.map(function(o,i){return{o:o,x:-12+i*8+(rr()-.5)*2,z:2+rr()*6,yaw:rr()*6,v:0,pause:rr()*1.5,gait:i*1.3,ph:i*1.7,pose:null,run:0,rate:.9+rr()*.2,tx:0,tz:0,tears:rr(),cat:i%2===1}});
+      st.forEach(function(a){pickSpot(a)});
+      time=0}
+    reset();
+    function pickSpot(a){a.tx=-14+rr()*28;a.tz=-1+rr()*10}
+    function norm(a){while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a}
+    function step(dt){
+      time+=dt;
+      // everyone hurries round the street, stops now and then to panic, and keeps clear of the cars and each other
+      st.forEach(function(a){
+        var dx=a.tx-a.x,dz=a.tz-a.z,d=Math.hypot(dx,dz)||1,sx=dx/d,sz=dz/d;
+        OBS.forEach(function(o){var ox=a.x-o[0],oz=a.z-o[1],od=Math.hypot(ox,oz)||1,r=o[2]+2.4;if(od<r){var k=(r-od)/r*6;sx+=ox/od*k;sz+=oz/od*k}});
+        st.forEach(function(o){if(o===a)return;var ox=a.x-o.x,oz=a.z-o.z,od=Math.hypot(ox,oz)||1;if(od<7){var k=(7-od)/7*3;sx+=ox/od*k;sz+=oz/od*k}});
+        if(a.pause>0){a.pause-=dt;a.v=Math.max(0,a.v-dt*10);if(a.pause<=0)pickSpot(a)}
+        else{
+          var want=Math.atan2(sx,sz),da=norm(want-a.yaw);a.yaw+=Math.max(-2.4*dt,Math.min(2.4*dt,da));
+          var sp=a.rate*2.7*Math.max(.3,1-Math.abs(da)/2);a.v+=(sp-a.v)*Math.min(1,dt*3);
+          if(d<1.2)a.pause=.8+rr()*1.8}
+        a.x+=Math.sin(a.yaw)*a.v*dt;a.z+=Math.cos(a.yaw)*a.v*dt;
+        a.x=Math.max(-AX+2,Math.min(AX-2,a.x));a.z=Math.max(-AZ+1.5,Math.min(AZ+1,a.z));
+        a.gait+=a.v*dt*1.6;
+        var stt=a.pause>0?'aim':'walk',dat=a.o.data;
+        var tp=MechPose.target(dat,stt,time+a.ph,0);a.pose=a.pose?MechPose.blend(a.pose,tp,Math.min(1,dt*6)):tp;a.run=0;
+        // sweat drops fly from the face
+        a.tears+=dt*(a.pause>0?9:4);
+        while(a.tears>1){a.tears-=1;var fc=a.o.data.face||{y:20,z:22,x:3},sp2=S*.82/(a.o.data.zoom||1),cyw=Math.cos(a.yaw),syw=Math.sin(a.yaw),lx=(rr()<.5?-1:1)*fc.x*sp2,lz=(fc.z-16+1.2)*sp2;
+          puffs.push({x:a.x+cyw*lx+syw*lz,y:(fc.y-.5)*sp2+.5*sp2,z:a.z-syw*lx+cyw*lz,vy:0,t:time,c:[.72,.88,1]})}
+      });
+      puffs=puffs.filter(function(q){q.vy+=dt*9;q.y-=q.vy*dt;if(q.y<.1){return false}return true});
+    }
+    function frame(){
+      var w=canvas.clientWidth||canvas.width,h=canvas.clientHeight||canvas.height,dpr=Math.min(window.devicePixelRatio||1,2),cw=Math.max(2,Math.round(w*dpr)),ch=Math.max(2,Math.round(h*dpr));
+      if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch}
+      gl.viewport(0,0,cw,ch);gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.clearColor(.03,.035,.055,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+      var t=time,asp=cw/ch,narrow=asp<.9;
+      // high camera looking steeply down, drifting slowly
+      var cx=Math.sin(t*.2)*2.5,eye=[cx,(narrow?24:15),(narrow?44:31)+Math.cos(t*.15)*.8],tgt=[cx,(narrow?3:3.4),2.5];
+      gl.uniformMatrix4fv(uVP,false,mul(persp(narrow?44:36,asp,.5,260),look(eye,tgt)));
+      // power flicker: now and then the whole street dims for a moment
+      var fk=Math.floor(t*4),fl=(Math.sin(fk*12.9898)*43758.5453%1+1)%1,flick=fl>.93?.55:1;gl.uniform3f(U('uTint'),flick,flick,flick);
+      var blink=Math.floor(t*2)%2,siren=Math.floor(t*5)%2;
+      // asphalt, sidewalks and road markings
+      bx(0,-.2,0,AX*2+60,.2,AZ*2+40,[.075,.075,.09]);
+      bx(0,.02,-AZ-3.1,AX*2+60,.1,3.8,[.15,.145,.14]);bx(0,.02,AZ+2.6,AX*2+60,.1,2.8,[.14,.135,.13]);
+      bx(0,.12,-AZ-1.2,AX*2+60,.06,.3,[.22,.21,.2]);bx(0,.12,AZ+1.2,AX*2+60,.06,.3,[.2,.19,.18]);
+      for(var dx=-AX-14;dx<=AX+14;dx+=5)bx(dx,.05,.5,2.6,.04,.22,[.55,.42,.1]);
+      for(var cz=-6;cz<=6;cz+=1.5)bx(7,.05,cz,3.4,.04,.7,[.4,.4,.42]);
+      // two searchlights sweeping the street
+      [[-26,-AZ-8,.5],[28,AZ+6,2.6]].forEach(function(q,i){var yw=q[2]+Math.sin(t*.35+i*2)*.5;draw(box,trs(q[0]+Math.sin(yw)*13,.07,q[1]+Math.cos(yw)*13,yw,0,3.4,.03,26),{col:[.2,.2,.17],emit:true,boost:0})});
+      // the buildings along the back: dark, with a few windows still lit
+      BLD.forEach(function(b,bi){var zc=-AZ-9,zf=zc+4;bx(b.x,b.h/2,zc,b.w,b.h,8,[b.c,b.c+.01,b.c+.04]);bx(b.x,b.h+.15,zc,b.w+.4,.3,8.4,[b.c*.7,b.c*.7,b.c*.8]);
+        b.wins.forEach(function(w){var on=w.lit===1||(w.lit===2&&Math.sin(t*(2+w.p*.3)+w.p*7)>.3);bx(b.x+w.x,w.y,zf+.05,.95,1.25,.1,on?[1,.68,.25]:[.04,.05,.08],on?.2:0)})});
+      bx(-AX-11,9,-2,6,18,AZ*2+10,[.09,.095,.12]);bx(AX+11,7,0,6,14,AZ*2+14,[.085,.09,.11]);
+      // streetlights (dead, one flickering) and a dead traffic light
+      for(var lx=-AX-6;lx<=AX+6;lx+=11){var lon=Math.sin(t*3.1+lx)>.92;bx(lx,2.6,-AZ-1.8,.22,5.2,.22,[.12,.12,.14]);bx(lx,5.3,-AZ-1.4,.3,.3,1.4,[.12,.12,.14]);bx(lx,5.1,-AZ-.8,.8,.2,.7,lon?[1,.78,.4]:[.18,.18,.2],lon?.6:0);if(lon)bx(lx,.07,-AZ+1.5,5,.03,4,[.34,.26,.1])}
+      bx(7,2.8,-AZ-1.6,.22,5.6,.22,[.12,.12,.14]);bx(7,5.8,-AZ-1.6,.7,1.5,.5,[.1,.1,.12]);bx(7,6.2,-AZ-1.3,.32,.32,.1,blink?[1,.2,.15]:[.15,.05,.05],blink?.8:0);
+      // a stalled car with its hazards blinking
+      bx(-11,.45,3.5,6.4,.7,2.9,[.16,.2,.26]);bx(-11.4,1.05,3.5,3.4,.7,2.5,[.07,.09,.12]);bx(-11,.08,2.0,6.6,.1,.18,[.05,.05,.06]);
+      [[-14.1,2.2],[-14.1,4.8],[-7.9,2.2],[-7.9,4.8]].forEach(function(q){bx(q[0],.55,q[1],.2,.28,.4,blink?[1,.62,.12]:[.2,.12,.05],blink?.9:0)});
+      // a patrol car, lights going
+      bx(10,.45,-4.2,5.4,.7,2.6,[.08,.1,.14]);bx(10,1.05,-4.2,2.8,.65,2.3,[.05,.06,.09]);bx(10,1.5,-4.2,1.2,.22,2.2,[.1,.1,.12]);
+      bx(9.4,1.68,-4.2,.7,.26,1.8,siren?[1,.1,.1]:[.25,.03,.03],siren?1:0);bx(10.6,1.68,-4.2,.7,.26,1.8,siren?[.15,.15,.25]:[.2,.3,1],siren?0:1);
+      bx(10,.07,-4.2,9+(siren?2:0),.03,7+(siren?1:0),siren?[.2,.04,.04]:[.04,.06,.2]);
+      // sandbags and a hazard barrier
+      for(var sb=0;sb<4;sb++){bx(-4.2+sb*1.4,.35,-6.3,1.3,.7,1,[.46,.4,.28]);if(sb<3)bx(-3.5+sb*1.4,1.0,-6.3,1.3,.6,1,[.5,.44,.3])}
+      bx(2,.5,AZ+.4,3.2,.2,.2,[.7,.5,.1]);bx(.7,.25,AZ+.4,.15,.5,.15,[.3,.3,.3]);bx(3.3,.25,AZ+.4,.15,.5,.15,[.3,.3,.3]);bx(2,.75,AZ+.4,3.2,.2,.2,[.1,.1,.12]);
+      // a wisp of steam from a manhole
+      for(var sm=0;sm<5;sm++){var su=(t*.5+sm*.2)%1;bx(3+Math.sin(sm*2+t)*.3,.2+su*4.5,-1.6,.5+su*1.4,.4,.5+su*1.4,[.2+.1*(1-su),.2+.1*(1-su),.22+.1*(1-su)])}
+      bx(3,.06,-1.6,1.3,.04,1.3,[.05,.05,.06]);
+      // embers and ash drifting up
+      EMB.forEach(function(e,i){var u=(e.y+t*e.v)%14,ex=e.x+Math.sin(t*.7+e.p)*.8,on=Math.sin(t*5+e.p*3)>-.4;if(on)bx(ex,u+.2,e.z,.13,.13,.13,i%3?[1,.62,.2]:[.8,.8,.82],.5)});
+      gl.uniform3f(U('uTint'),1,1,1);
+      // sweat flying off
+      puffs.forEach(function(q){draw(box,trs(q.x,q.y,q.z,0,0,.22,.4,.22),{col:q.c,emit:true,boost:.9})});
+      // the survivors
+      st.forEach(function(a,i){
+        var bob=Math.abs(Math.sin(a.gait))*(.1+.25*a.run)*Math.min(1,a.v*.4),roll=Math.sin(t*7+a.ph)*.02*Math.min(1,a.v*.4);
+        var sp=a.o.data&&a.o.data.pet?S*.82/(a.o.data.zoom||1):S;
+        bx(a.x,.09,a.z,3.2,.03,2.2,[.02,.02,.03]);
+        draw(a.o,trs(a.x,.5*sp+bob+.02,a.z,a.yaw,roll,sp,sp,sp),{pose:a.pose,ph:a.gait});
+        
+        
+      });
+    }
+    function start(){var t0=performance.now();last=t0;
+      // time the very first frame, forced to finish: a device this slow gets the 2D intro instead
+      frame();gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(4));
+      if(performance.now()-t0>1500&&opts.onSlow){opts.onSlow();return}
+      last=performance.now();
+      var n=0,slow=0;
+      (function loop(ts){raf=requestAnimationFrame(loop);var real=ts-last,dt=Math.min(.05,real/1000);last=ts;
+        // a device that cannot keep up (software rendering, for one) gets the 2D intro instead
+        if(++n>2){if(real>400)slow++;else slow=Math.max(0,slow-1);if(slow>=2&&opts.onSlow){stop();opts.onSlow();return}}
+        step(dt);frame()})(t0)}
+    function stop(){cancelAnimationFrame(raf);raf=0}
+    function renderAt(T){reset();for(var s=0;s<T*30;s++)step(1/30);frame()}
+    return{start:start,stop:stop,renderAt:renderAt};
+  }
+  window.Intro3D={create:create,supported:function(){try{var c=document.createElement('canvas');return!!c.getContext('webgl2')}catch(e){return false}}};
+})();
