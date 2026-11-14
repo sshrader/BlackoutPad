@@ -115,11 +115,11 @@
       w=Math.max(80,Math.ceil(vw/scale));h=Math.max(80,Math.ceil(vh/scale));canvas.width=w;canvas.height=h;
       bl=[];var x=-6;while(x<w){var bw=18+Math.round(rd()*16),bh=Math.round(h*(.3+rd()*.28)),wins=[];for(var wy=6;wy<bh-4;wy+=8)for(var wx=3;wx<bw-5;wx+=7){var q=rd();wins.push({x:wx,y:wy,lit:q<.1?1:q<.17?2:0,p:rd()*9})}bl.push({x:x,w:bw,h:bh,wins:wins,c:Math.round(20+rd()*10)});x+=bw+2}
       em=[];for(var i=0;i<Math.round(w/4);i++)em.push({x:rd()*w,y:rd()*h,v:6+rd()*10,p:rd()*6})}
-    // two survivors: a hazmat suit and a battery. dir is the way they face; step swaps the feet; the sweat drop runs down
+    // two survivors: a hazmat worker and a lamplighter with his lantern. dir is the way they face; step swaps the feet; the sweat drop runs down
     function friend(c,x,gy,dir,bat,col,dk,step,t){
       var f=function(rx,ry,rw,rh,cl){c.fillStyle=cl;c.fillRect(Math.round(x+dir*rx-(dir<0?rw-1:0)),gy+ry,rw,rh)};
-      if(bat){f(-6,-18,12,17,col);f(-3,-21,6,3,dk);f(-5,-1+(step?1:0),4,2,'#2b2b2b');f(1,-1+(step?0:1),4,2,'#2b2b2b');
-        f(-4,-14,2,3,'#fff');f(2,-14,2,3,'#fff');f(-3,-13,1,1,'#222');f(3,-13,1,1,'#222');f(-3,-8,6,1,'#222');f(-4,-9,1,1,'#222');f(3,-9,1,1,'#222');f(3,-11+Math.round((t*3)%1*5),1,2,'#bfe3ff')}
+      if(bat){f(-5,-26,10,9,'#e8c4a0');f(-5,-27,10,3,'#5a3a1e');f(-6,-17,12,16,col);f(-5,-1+(step?1:0),4,2,'#2b2b2b');f(1,-1+(step?0:1),4,2,'#2b2b2b');f(6,-15,3,6,col);
+        f(-3,-23,2,2,'#fff');f(1,-23,2,2,'#fff');f(-2,-22,1,1,'#222');f(2,-22,1,1,'#222');f(-2,-19,4,1,'#222');f(-3,-20,1,1,'#222');f(2,-20,1,1,'#222');f(3,-21+Math.round((t*3)%1*5),1,2,'#bfe3ff');f(8,-10,3,4,'#ffb347')}
       else{f(-6,-17,12,12,col);f(-5,-26,10,9,col);f(-4,-24,8,5,'#10141c');f(-3,-23,2,2,'#a8f0ff');f(1,-23,2,2,'#a8f0ff');f(-2,-20,4,1,'#a8f0ff');
         f(-5,-5,4,5+(step?1:0),dk);f(1,-5,4,5+(step?0:1),dk);f(6,-15,3,6,col);f(3,-22+Math.round((t*3)%1*5),1,2,'#bfe3ff')}
     }
