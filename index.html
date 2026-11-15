@@ -123,7 +123,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
   <div class="slog" id="slog" aria-hidden="true"></div>
   <div class="cap">
     <h2>PooPad</h2>
-    <p>The grid is going dark. Pick an asset.</p>
+    <p>The grid is going dark. Pick a poop.</p>
     <button id="enter" type="button">Proceed ›</button>
   </div>
 </div>
@@ -139,7 +139,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
 </header>
 
 <h1>When it hits the fan. <span>Launch a coin.</span></h1>
-<p class="lede">The headlines say World War 3. The rumours say a 90-day blackout. While the grid wobbles, make your own coin. Every coin launched here claims one piece of the power grid as its logo (a wind turbine, solar array, cooling tower, diesel generator, substation, pole transformer, pylon or battery bank), and it stays with that coin for good. Each one has a worried face and reports the coin’s public numbers, read from the chain.</p>
+<p class="lede">The headlines say World War 3. The rumours say a 90-day blackout. Every meme coin is a poop coin anyway, so make yours. Every coin launched here claims one of PooPad’s worried little poops as its logo (a swirl, pile, nugget, soft serve, log, puddle, pellet or splat), and it stays with that coin for good. Each one reports the coin’s public numbers, read from the chain.</p>
 
 <div id="recent" hidden><h2>Recent launches</h2><div class="recent" id="recentlist"></div></div>
 
@@ -148,9 +148,9 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
 
 <h2>Generators & Distributors</h2>
 <div class="board" id="board"></div>
-<h2>The grid</h2>
+<h2>The pile</h2>
 <div class="bears" id="bears"></div>
-<div class="row" style="margin-top:12px"><button class="btn" id="rand" type="button">Random asset</button><span class="facts" id="count"></span></div>
+<div class="row" style="margin-top:12px"><button class="btn" id="rand" type="button">Random poop</button><span class="facts" id="count"></span></div>
 
 <h2>Launch</h2>
 <div class="panel">
@@ -165,7 +165,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
   </div>
   <div class="two">
     <div><label for="buy">Your first buy in SOL <span class="rv" id="buyhint">0 to 5</span></label><input type="text" id="buy" value="0.1" inputmode="decimal"></div>
-    <div><label>Logo</label><div class="note" id="pick">Random grid asset, chosen when you launch.</div><div id="customlogo" hidden style="margin-top:10px"><label for="logofile">Custom logo <span class="rv">founder only, optional</span></label><input type="file" id="logofile" accept="image/png,image/jpeg,image/webp"><div class="note">Leave empty to use the pet’s picture. It is squared to 512 px.</div></div></div>
+    <div><label>Logo</label><div class="note" id="pick">Random poop, chosen when you launch.</div><div id="customlogo" hidden style="margin-top:10px"><label for="logofile">Custom logo <span class="rv">founder only, optional</span></label><input type="file" id="logofile" accept="image/png,image/jpeg,image/webp"><div class="note">Leave empty to use the pet’s picture. It is squared to 512 px.</div></div></div>
   </div>
   <div><label for="after">After launch, open</label><select id="after"><option value="coin">The coin page on PooPad</option><option value="gmgn">GMGN (mainnet only)</option><option value="none">Nothing, I will pick from the menu</option></select></div>
   <div class="note" id="feenote"></div>
@@ -183,7 +183,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
 </div>
 
 <p class="fine">Launching creates a real coin on Solana's <span id="fnet">devnet</span>. You sign every transaction in your own wallet and pay its fees; PooPad never holds your SOL. Your first buy goes in the same transaction as the launch, so nobody can buy before you. A coin can lose all of its value, and its character has no promised value. PooPad does not vouch for any coin launched here. Nothing here is financial advice.</p>
-<footer>Grid assets drawn by code. <button type="button" id="replay">Replay the intro</button></footer>
+<footer>Poops drawn by code. <button type="button" id="replay">Replay the intro</button></footer>
 </div>
 
 <script src="/launch.js"></script>
@@ -260,13 +260,13 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
       if(b.agent&&b.agent.ability)el.title=b.agent.name+' · '+b.agent.ability.name+': '+b.agent.ability.does+(b.agent.weapon?'':'');
       el.appendChild(sm);g.appendChild(el);
     });
-    $('count').textContent=open+' of '+st.total+' assets open';
+    $('count').textContent=open+' of '+st.total+' poops open';
     $('rand').disabled=!open;
     if(pickSlot&&pickSlot!=='founder'&&!st.bears.some(function(b){return b.n===pickSlot&&b.state==='open'}))pickSlot=null;
   }
   var feeNoteBase='';
   function showPick(){
-    $('pick').textContent=pickSlot==='founder'?'PooPad, the flagship. One of one.':pickSlot?(bearName(pickSlot)+' is yours if you launch now.'):'Random grid asset, chosen when you launch.';
+    $('pick').textContent=pickSlot==='founder'?'PooPad, the flagship. One of one.':pickSlot?(bearName(pickSlot)+' is yours if you launch now.'):'Random poop, chosen when you launch.';
     $('customlogo').hidden=!(st&&st.founder&&(pickSlot==='founder'||(pubkey&&short(pubkey)===st.founder.short)));
     $('feenote').textContent=pickSlot==='founder'?'Founder launch: all creator fees go to your wallet.':feeNoteBase;
   }

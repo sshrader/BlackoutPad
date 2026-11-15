@@ -1,14 +1,14 @@
 # PooPad
 
-A pump.fun launchpad for a blackout and doomsday mood: every coin claims a worried little piece of the power grid as its logo. Anyone can launch from their own wallet. The character they get is locked to their coin for good, and reports the coin's public numbers on its coin page.
+A pump.fun launchpad for a blackout and doomsday mood: every coin claims a worried little poop as its logo. Anyone can launch from their own wallet. The character they get is locked to their coin for good, and reports the coin's public numbers on its coin page.
 
 This is its own service: its own data volume, env vars and domain. It lives at the root of this repo, so Railway needs no Root Directory.
 
 - **`/`** is the whole app: an intro (a map of the power grid going dark, with tripped breakers, until the visitor presses Proceed), then the launchpad over a dim control-room grid.
 - A launcher connects Phantom, picks an open agent (or asks for a random one), names the coin, and launches. The launch uses the official `@pump-fun/pump-sdk`, with the launcher's first buy in the same transaction.
 - **Classes and abilities:** each agent has a class with one special ability (Holder Radar, Cap Tracker, Dev Watch, Record Board, Milestone Log, Graduation Pace, Self-Check, Plain Brief, Authority Audit, Launch Block Scan, Sell Impact; the flagship has Command Sweep). They only use public chain numbers and what the agent saw on earlier visits (kept in `watch-<cluster>.json`). None of them trades or predicts.
-- **Grid assets:** pixel sprites drawn by code (`grid.js`, no image files): a wind turbine, solar array, cooling tower and diesel generator (the generators) and a substation, pole transformer, pylon and battery bank (the distributors). Each has four colour sets and optional extras (plaster, beacon, flag), and no two in a set look alike.
-- **Classes:** generators are `TURBINE`, `SOLAR`, `COOLING`, `DIESEL`; distributors are `SUBSTATION`, `TRANSFORMER`, `PYLON`, `BATTERY`. Each maps to a report in `report.js` (`ability.fn`) that works from real chain numbers.
+- **Poops:** pixel sprites drawn by code (`grid.js`, no image files): a swirl, pile, nugget and soft serve (generators) and a log, puddle, pellet and splat (distributors). Each has four colour sets (classic, dark roast, tan, toxic) and optional extras (plaster, beacon, flag), and no two in a set look alike.
+- **Classes:** generators are `SWIRL`, `PILE`, `NUGGET`, `SOFTSERVE`; distributors are `LOG`, `PUDDLE`, `PELLET`, `SPLAT`. Each maps to a report in `report.js` (`ability.fn`) that works from real chain numbers.
 - **The agent report** (`report.js`) is on every coin page. It turns the numbers read from the chain into plain sentences: curve progress and milestones, market cap, dev share, top-10 concentration, holder count, and flags for a large dev or concentrated holders. It only reads public data. It does not trade, hold funds, predict prices or give advice, and the page says so. It is built from the same cached chain read as the rest of the coin page.
 - **PooPad (flagship):** one flagship outside the numbered set, a crowned poop that sweats green, launchable only by `FOUNDER_WALLET`.
 - **Reserve, then lock:** picking an agent holds it for 15 minutes. After the launch lands, the server reads the transaction from the chain (signed by that wallet, includes the new mint and the pump.fun program) and only then locks the agent to the coin.

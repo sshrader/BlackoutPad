@@ -1,7 +1,7 @@
 'use strict';
-// Grid assets for PooPad: eight original pieces of the power grid, drawn as 32 x 32 pixel sprites with a worried face.
-// Generators make power (wind turbine, solar array, cooling tower, diesel generator). Distributors move it (substation, pole transformer,
-// pylon, battery bank). Even slots are generators and odd slots are distributors, so the teams stay level.
+// Poop characters for PooPad: eight originals, drawn as 32 x 32 pixel sprites with a worried face.
+// Generators are the swirl, pile, nugget and soft serve; distributors are the log, puddle, pellet and splat.
+// Even slots are generators and odd slots are distributors, so the teams stay level.
 // Everything is drawn here with a tiny rasterizer and a PNG encoder, so there are no dependencies and no image files.
 const crypto = require('crypto');
 const { encodePng } = require('./isorender');
@@ -12,63 +12,63 @@ const INK = '#14141a', FACE_TEAR = '#1ff2ff', STEEL = '#9aa4ba', DARKBASE = '#15
 // ---- looks: each asset has four colour sets ----
 const SPECIES = {
   generator: {
-    turbine: { name: 'Wind turbine', w: 14, looks: [
-      { n: 'White', body: '#e8ecf4', blade: '#cfd6e6', tower: '#9aa4ba' }, { n: 'Ice', body: '#c9eaf5', blade: '#a8d6ea', tower: '#8aa6c0' },
-      { n: 'Mint', body: '#c9f2e2', blade: '#a6e6cd', tower: '#8ab0a4' }, { n: 'Lilac', body: '#dcd6f5', blade: '#c0b8ee', tower: '#9a98c0' }] },
-    solar: { name: 'Solar array', w: 14, looks: [
-      { n: 'Navy', panel: '#1f3a6a', edge: '#1ff2ff' }, { n: 'Indigo', panel: '#2a2f78', edge: '#7b86ff' },
-      { n: 'Teal', panel: '#124a5a', edge: '#39ff88' }, { n: 'Violet', panel: '#3a2a78', edge: '#c08aff' }] },
-    cooling: { name: 'Cooling tower', w: 14, looks: [
-      { n: 'Periwinkle', body: '#7b86d0', steam: '#cfd6e6' }, { n: 'Concrete', body: '#8a90a8', steam: '#e0e4ee' },
-      { n: 'Slate', body: '#56608f', steam: '#b8c0dc' }, { n: 'Sky', body: '#6aa6d6', steam: '#e0f0ff' }] },
-    diesel: { name: 'Diesel generator', w: 14, looks: [
-      { n: 'Violet', body: '#7a3cff', stripe: '#39ff88' }, { n: 'Cobalt', body: '#2f5ae0', stripe: '#1ff2ff' },
-      { n: 'Magenta', body: '#b53cd6', stripe: '#39ff88' }, { n: 'Plum', body: '#5a2fa0', stripe: '#ff8ad6' }] },
+    swirl: { name: 'Swirl', w: 14, looks: [
+      { n: 'Classic', body: '#8a5a34', shade: '#6a4226', hi: '#b07a4c' }, { n: 'Dark roast', body: '#5a3a22', shade: '#412716', hi: '#7a5234' },
+      { n: 'Tan', body: '#b08a5a', shade: '#8a6a40', hi: '#d0aa78' }, { n: 'Toxic', body: '#6aa84a', shade: '#4a8234', hi: '#8ed06a' }] },
+    pile: { name: 'Pile', w: 14, looks: [
+      { n: 'Classic', body: '#8a5a34', shade: '#6a4226', hi: '#b07a4c' }, { n: 'Dark roast', body: '#5a3a22', shade: '#412716', hi: '#7a5234' },
+      { n: 'Tan', body: '#b08a5a', shade: '#8a6a40', hi: '#d0aa78' }, { n: 'Toxic', body: '#6aa84a', shade: '#4a8234', hi: '#8ed06a' }] },
+    nugget: { name: 'Nugget', w: 14, looks: [
+      { n: 'Classic', body: '#8a5a34', shade: '#6a4226', hi: '#b07a4c' }, { n: 'Dark roast', body: '#5a3a22', shade: '#412716', hi: '#7a5234' },
+      { n: 'Tan', body: '#b08a5a', shade: '#8a6a40', hi: '#d0aa78' }, { n: 'Toxic', body: '#6aa84a', shade: '#4a8234', hi: '#8ed06a' }] },
+    softserve: { name: 'Soft serve', w: 14, looks: [
+      { n: 'Classic', body: '#8a5a34', shade: '#6a4226', hi: '#b07a4c' }, { n: 'Dark roast', body: '#5a3a22', shade: '#412716', hi: '#7a5234' },
+      { n: 'Tan', body: '#b08a5a', shade: '#8a6a40', hi: '#d0aa78' }, { n: 'Toxic', body: '#6aa84a', shade: '#4a8234', hi: '#8ed06a' }] },
   },
   distributor: {
-    substation: { name: 'Substation', w: 14, looks: [
-      { n: 'Slate', body: '#2a3158', trim: '#4a54a0', lamp: '#39ff88' }, { n: 'Steel', body: '#3a4468', trim: '#6a76b8', lamp: '#1ff2ff' },
-      { n: 'Midnight', body: '#1f2548', trim: '#3a4590', lamp: '#39ff88' }, { n: 'Graphite', body: '#33363f', trim: '#5a5f70', lamp: '#9dffc4' }] },
-    transformer: { name: 'Pole transformer', w: 14, looks: [
-      { n: 'Indigo', body: '#4a54a0', pole: '#3b3f7a', arm: '#5560b0', lid: '#7b86d0' }, { n: 'Grey', body: '#6a7088', pole: '#4a4f66', arm: '#7a8098', lid: '#9aa0b8' },
-      { n: 'Teal', body: '#2f7a86', pole: '#2a4a58', arm: '#4a9aa6', lid: '#6ac2cc' }, { n: 'Plum', body: '#6a4a98', pole: '#4a3a70', arm: '#8a66b8', lid: '#a888d8' }] },
-    pylon: { name: 'Pylon', w: 14, looks: [
-      { n: 'Lattice', steel: '#7b86d0', box: '#2a3158', cap: '#39ff88' }, { n: 'Silver', steel: '#aab2c8', box: '#3a4060', cap: '#1ff2ff' },
-      { n: 'Rust', steel: '#b8704a', box: '#3a2a38', cap: '#39ff88' }, { n: 'Blue', steel: '#5a8ad6', box: '#202f58', cap: '#9dffc4' }] },
-    battery: { name: 'Battery bank', w: 14, looks: [
-      { n: 'Slate', body: '#2a3158', term: '#39ff88' }, { n: 'Steel', body: '#3a4468', term: '#1ff2ff' },
-      { n: 'Charcoal', body: '#2e3038', term: '#39ff88' }, { n: 'Navy', body: '#1f3a6a', term: '#9dffc4' }] },
+    log: { name: 'Log', w: 14, looks: [
+      { n: 'Classic', body: '#8a5a34', shade: '#6a4226', hi: '#b07a4c' }, { n: 'Dark roast', body: '#5a3a22', shade: '#412716', hi: '#7a5234' },
+      { n: 'Tan', body: '#b08a5a', shade: '#8a6a40', hi: '#d0aa78' }, { n: 'Toxic', body: '#6aa84a', shade: '#4a8234', hi: '#8ed06a' }] },
+    puddle: { name: 'Puddle', w: 14, looks: [
+      { n: 'Classic', body: '#8a5a34', shade: '#6a4226', hi: '#b07a4c' }, { n: 'Dark roast', body: '#5a3a22', shade: '#412716', hi: '#7a5234' },
+      { n: 'Tan', body: '#b08a5a', shade: '#8a6a40', hi: '#d0aa78' }, { n: 'Toxic', body: '#6aa84a', shade: '#4a8234', hi: '#8ed06a' }] },
+    pellet: { name: 'Pellet', w: 14, looks: [
+      { n: 'Classic', body: '#8a5a34', shade: '#6a4226', hi: '#b07a4c' }, { n: 'Dark roast', body: '#5a3a22', shade: '#412716', hi: '#7a5234' },
+      { n: 'Tan', body: '#b08a5a', shade: '#8a6a40', hi: '#d0aa78' }, { n: 'Toxic', body: '#6aa84a', shade: '#4a8234', hi: '#8ed06a' }] },
+    splat: { name: 'Splat', w: 14, looks: [
+      { n: 'Classic', body: '#8a5a34', shade: '#6a4226', hi: '#b07a4c' }, { n: 'Dark roast', body: '#5a3a22', shade: '#412716', hi: '#7a5234' },
+      { n: 'Tan', body: '#b08a5a', shade: '#8a6a40', hi: '#d0aa78' }, { n: 'Toxic', body: '#6aa84a', shade: '#4a8234', hi: '#8ed06a' }] },
   },
 };
 const ACCS = [['none', 30], ['plaster', 24], ['beacon', 20], ['flag', 26]];
 const ACC_COL = ['#ff3d6e', '#1ff2ff', '#39ff88', '#ffd24a', '#b08aff', '#ff8ad6', '#ff9a3c'];
 const BGS = { generator: ['#06141c', '#071722', '#08131f', '#06161a'], distributor: ['#07160f', '#08180f', '#0a1812', '#06140e'] };
 const NAMES = {
-  generator: ['SPIN', 'GUST', 'BREEZE', 'SUNUP', 'DAWN', 'STEAM', 'PLUME', 'DRAFT', 'ROTOR', 'BLADE', 'FLARE', 'RADIANT', 'TURBO', 'HUM', 'COIL', 'BURN', 'CRANK', 'IDLE', 'REVVED', 'SOLSTICE', 'HALO', 'RAY', 'BEAM', 'GLINT', 'SPARKLE', 'ZEPHYR', 'MISTRAL', 'DYNAMO', 'KILN', 'FURNACE', 'REACTOR', 'DRIFT'],
-  distributor: ['RELAY', 'SWITCH', 'FEEDER', 'TAP', 'BUSBAR', 'BREAKER', 'LOAD', 'RING', 'MAINS', 'SPAN', 'NODE', 'TIE', 'SHUNT', 'PHASE', 'SAG', 'DROP', 'LINE', 'CABLE', 'CONDUIT', 'FUSE', 'VOLT', 'AMP', 'WATT', 'OHM', 'RESERVE', 'SPARE', 'BACKUP', 'STANDBY', 'FLOW', 'TRUNK', 'RIDGE', 'CROSSING'],
+  generator: ['PLOP', 'SPLORT', 'TURDLE', 'DOOKIE', 'SQUISH', 'FLUSH', 'GRUMBLE', 'STINKY', 'PHEW', 'WHIFF', 'TOOT', 'BRAPP', 'SMUDGE', 'GLOOP', 'SQUELCH', 'MUSHY', 'CLOG', 'STEAMER', 'RIPPLE', 'BUBBLES', 'HONK', 'WIGGLE', 'BLOOP', 'PLUNGE', 'LOAF', 'SOGGY', 'CRINGE', 'OOPS', 'YIKES', 'GASSY', 'FUNK', 'NUMBER2'],
+  distributor: ['STAIN', 'WHOOPS', 'MESS', 'SPILL', 'SMEAR', 'GROSS', 'YUCK', 'EWW', 'ICK', 'SLOP', 'GUNK', 'GOOP', 'SLIME', 'MUCK', 'DRIP', 'SPLISH', 'DAMP', 'SQUIRT', 'LEAK', 'OOZE', 'RUNNY', 'PANIC', 'URGENT', 'HURRY', 'BRACE', 'OOF', 'NOPE', 'TRAPPED', 'CORNERED', 'DOOMED', 'REGRET', 'SPLOSH'],
 };
 
 // ---- classes: each is an ability that works from real chain numbers (fn names the report in report.js) ----
 const ROLES = {
-  TURBINE: { team: 'generator', fn: 'SCOUT', blurb: 'Spins up a count of every wallet holding the coin.' },
-  SOLAR: { team: 'generator', fn: 'ARCHIVIST', blurb: 'Soaks up each milestone the coin passes along its curve.' },
-  COOLING: { team: 'generator', fn: 'HUNTER', blurb: 'Watches for the wallets that rushed in during the launch block.' },
-  DIESEL: { team: 'generator', fn: 'COURIER', blurb: 'Keeps the coin’s best days on record, in case the lights stay off.' },
-  SUBSTATION: { team: 'distributor', fn: 'SENTRY', blurb: 'Keeps watch on the dev wallet around the clock.' },
-  TRANSFORMER: { team: 'distributor', fn: 'ANALYST', blurb: 'Steps the market cap up and down and tracks how far it is from the peak.' },
-  PYLON: { team: 'distributor', fn: 'AUDITOR', blurb: 'Trusts nothing until the mint and freeze authority are revoked.' },
-  BATTERY: { team: 'distributor', fn: 'WARDEN', blurb: 'Works out how hard a big sale would hit the curve.' },
+  SWIRL: { team: 'generator', fn: 'SCOUT', blurb: 'Swirls round every wallet holding the coin and counts them.' },
+  PILE: { team: 'generator', fn: 'ARCHIVIST', blurb: 'Piles up each milestone the coin passes along its curve.' },
+  NUGGET: { team: 'generator', fn: 'HUNTER', blurb: 'Sniffs out the wallets that rushed in during the launch block.' },
+  SOFTSERVE: { team: 'generator', fn: 'COURIER', blurb: 'Keeps the coin’s best days on record, like a good cone.' },
+  LOG: { team: 'distributor', fn: 'SENTRY', blurb: 'Keeps watch on the dev wallet and never moves.' },
+  PUDDLE: { team: 'distributor', fn: 'ANALYST', blurb: 'Tracks the market cap and how far it has run since the peak.' },
+  PELLET: { team: 'distributor', fn: 'AUDITOR', blurb: 'Trusts nothing until the mint and freeze authority are revoked.' },
+  SPLAT: { team: 'distributor', fn: 'WARDEN', blurb: 'Works out how big a mess a large sale would make.' },
 };
 const ABILITIES = {
-  TURBINE: { name: 'Holder Radar', fn: 'SCOUT', does: 'Tracks how many wallets hold the coin and how that count has changed since it first looked.' },
-  SOLAR: { name: 'Milestone Log', fn: 'ARCHIVIST', does: 'Writes down the moment the coin first passes 25%, 50%, 75% and 90% of the curve, and when it graduates.' },
-  COOLING: { name: 'Launch Block Scan', fn: 'HUNTER', does: 'Finds the wallets that bought in the same block as the launch or the next, and how much of the supply they hold now.' },
-  DIESEL: { name: 'Record Board', fn: 'COURIER', does: 'Keeps the coin’s records: its highest market cap, most holders and furthest curve progress, with when each was seen.' },
-  SUBSTATION: { name: 'Dev Watch', fn: 'SENTRY', does: 'Watches the dev wallet and the top ten holders, and sounds the alarm if the dev’s share drops.' },
-  TRANSFORMER: { name: 'Cap Tracker', fn: 'ANALYST', does: 'Follows market cap against where it started and where it peaked, and shows how far it is from the high.' },
-  PYLON: { name: 'Authority Audit', fn: 'AUDITOR', does: 'Reads the token itself and says whether its mint authority and freeze authority are revoked.' },
-  BATTERY: { name: 'Sell Impact', fn: 'WARDEN', does: 'Uses the curve’s real reserves to work out what would happen if the dev or the biggest holder sold everything right now.' },
-  FLAGSHIP: { name: 'Command Sweep', fn: 'FLAGSHIP', does: 'Runs every other asset’s ability on the coin at once and reports the headline from each.' },
+  SWIRL: { name: 'Holder Radar', fn: 'SCOUT', does: 'Tracks how many wallets hold the coin and how that count has changed since it first looked.' },
+  PILE: { name: 'Milestone Log', fn: 'ARCHIVIST', does: 'Writes down the moment the coin first passes 25%, 50%, 75% and 90% of the curve, and when it graduates.' },
+  NUGGET: { name: 'Launch Block Scan', fn: 'HUNTER', does: 'Finds the wallets that bought in the same block as the launch or the next, and how much of the supply they hold now.' },
+  SOFTSERVE: { name: 'Record Board', fn: 'COURIER', does: 'Keeps the coin’s records: its highest market cap, most holders and furthest curve progress, with when each was seen.' },
+  LOG: { name: 'Dev Watch', fn: 'SENTRY', does: 'Watches the dev wallet and the top ten holders, and sounds the alarm if the dev’s share drops.' },
+  PUDDLE: { name: 'Cap Tracker', fn: 'ANALYST', does: 'Follows market cap against where it started and where it peaked, and shows how far it is from the high.' },
+  PELLET: { name: 'Authority Audit', fn: 'AUDITOR', does: 'Reads the token itself and says whether its mint authority and freeze authority are revoked.' },
+  SPLAT: { name: 'Sell Impact', fn: 'WARDEN', does: 'Uses the curve’s real reserves to work out what would happen if the dev or the biggest holder sold everything right now.' },
+  FLAGSHIP: { name: 'Command Sweep', fn: 'FLAGSHIP', does: 'Runs every other character’s ability on the coin at once and reports the headline from each.' },
 };
 const TEAM_ROLES = { generator: Object.keys(ROLES).filter((k) => ROLES[k].team === 'generator'), distributor: Object.keys(ROLES).filter((k) => ROLES[k].team === 'distributor') };
 
@@ -160,41 +160,36 @@ function face(c, x, y, o) {
 
 // ---- the eight assets, as drawn in the mockup ----
 const DRAW = {
-  turbine(c, L) {
-    for (const a of [10, 130, 250]) c.spin(15, 0, 2, 14, 16, 14, a, L.blade);
-    c.rect(15, 19, 2, 11, L.tower); c.rect(11, 29, 10, 2, DARKBASE);
-    c.rect(7, 8, 18, 12, L.body); face(c, 10, 9);
+  swirl(c, L) {
+    c.poly([[3, 29], [4, 22], [9, 20], [23, 20], [28, 22], [29, 29]], L.body); c.rect(4, 27, 25, 2, L.shade);
+    c.poly([[7, 21], [9, 14], [14, 12], [18, 12], [23, 14], [25, 21]], L.body); c.rect(9, 20, 15, 1, L.shade);
+    c.poly([[11, 13], [13, 9], [16, 6], [19, 9], [21, 13]], L.body); c.poly([[14, 7], [17, 2], [18, 7]], L.body); c.rect(10, 15, 3, 1, L.hi); face(c, 10, 15);
   },
-  solar(c, L) {
-    const P = [[3, 6], [29, 6], [25, 22], [7, 22]];
-    c.poly(P, L.panel);
-    for (let i = 0; i < 4; i++) { const a = P[i], b = P[(i + 1) % 4]; c.line(a[0], a[1], b[0], b[1], 1, L.edge); }
-    c.rect(15, 22, 2, 6, STEEL); c.rect(8, 28, 16, 2, DARKBASE); face(c, 10, 8);
+  pile(c, L) {
+    c.poly([[2, 29], [3, 22], [8, 18], [24, 18], [29, 22], [30, 29]], L.body); c.rect(3, 27, 27, 2, L.shade);
+    c.poly([[8, 19], [11, 13], [21, 13], [24, 19]], L.body); c.rect(10, 14, 3, 1, L.hi); face(c, 10, 16);
   },
-  cooling(c, L) {
-    c.circle(14, 3, 2.5, L.steam, 0.6); c.circle(19, 2, 2, L.steam, 0.5);
-    c.poly([[7, 6], [25, 6], [22, 17], [26, 29], [6, 29], [10, 17]], L.body); face(c, 10, 16);
+  nugget(c, L) {
+    c.circle(16, 19, 12, L.body); c.fill((x, y) => (x - 16) * (x - 16) + (y - 19) * (y - 19) <= 144 && y > 26, L.shade); c.circle(9.5, 11.5, 1.8, L.hi); face(c, 10, 14);
   },
-  diesel(c, L) {
-    c.circle(26, 3, 2, STEEL, 0.6); c.rect(24, 5, 3, 8, DARKBASE);
-    c.rect(3, 26, 26, 3, DARKBASE); c.rect(4, 13, 24, 13, L.body); c.rect(4, 12, 24, 1, L.stripe); face(c, 8, 14);
+  softserve(c, L) {
+    c.poly([[7, 20], [25, 20], [16, 31]], '#d9a860'); c.line(10, 21, 18, 29, 1, '#b8863e'); c.line(22, 21, 14, 29, 1, '#b8863e');
+    c.poly([[4, 20], [5, 11], [27, 11], [28, 20]], L.body); c.rect(5, 18, 23, 2, L.shade);
+    c.poly([[9, 12], [11, 7], [21, 7], [23, 12]], L.body); c.poly([[13, 8], [16, 1], [19, 8]], L.body); c.rect(8, 12, 3, 1, L.hi); face(c, 10, 10);
   },
-  substation(c, L) {
-    c.rect(2, 27, 28, 3, DARKBASE); c.rect(6, 12, 20, 15, L.body); c.rect(5, 11, 22, 2, L.trim);
-    for (const x of [9, 15, 21]) c.rect(x, 6, 2, 5, L.trim);
-    for (const x of [8, 14, 20]) c.rect(x, 4, 4, 2, L.lamp);
-    face(c, 10, 14);
+  log(c, L) {
+    c.circle(10, 19, 8, L.body); c.circle(22, 19, 8, L.body); c.rect(10, 11, 12, 16, L.body); c.rect(6, 25, 20, 2, L.shade); c.rect(8, 13, 4, 1, L.hi); face(c, 10, 14);
   },
-  transformer(c, L) {
-    c.rect(14, 2, 4, 28, L.pole); c.rect(5, 5, 22, 2, L.arm); c.rect(8, 10, 16, 15, L.body); c.rect(7, 9, 18, 2, L.lid); face(c, 10, 12);
+  puddle(c, L) {
+    c.poly([[8, 22], [10, 13], [22, 13], [24, 22]], L.body);
+    c.fill((x, y) => ((x - 16) / 14) * ((x - 16) / 14) + ((y - 23) / 6) * ((y - 23) / 6) <= 1, L.body); c.rect(5, 26, 2, 4, L.body); c.rect(25, 26, 2, 3, L.body); c.rect(12, 27, 2, 3, L.shade); c.rect(11, 14, 3, 1, L.hi); face(c, 10, 13);
   },
-  pylon(c, L) {
-    for (const [a, b, d, e] of [[16, 2, 5, 30], [16, 2, 27, 30], [8, 22, 24, 22], [10.5, 16, 21.5, 16], [13, 10, 19, 10]]) c.line(a, b, d, e, 1.4, L.steel);
-    c.rect(3, 8, 26, 1.5, L.steel); c.rect(4, 9.5, 2, 2, L.cap); c.rect(26, 9.5, 2, 2, L.cap); c.rect(9, 12, 14, 12, L.box); face(c, 10, 13);
+  pellet(c, L) {
+    c.circle(16, 17, 10, L.body); c.circle(5, 26, 3.5, L.body); c.circle(27, 27, 3, L.body); c.circle(22, 29, 2.5, L.shade); c.circle(11, 11, 1.6, L.hi); face(c, 10, 12);
   },
-  battery(c, L) {
-    c.rect(8, 7, 4, 3, L.term); c.rect(20, 7, 4, 3, L.term); c.rect(3, 10, 26, 17, L.body);
-    c.rect(6, 23, 20, 2, INK); c.rect(6, 23, 4, 2, '#ff3d6e'); face(c, 10, 11);
+  splat(c, L) {
+    c.circle(16, 17, 9, L.body); c.circle(7, 9, 3, L.body); c.circle(26, 10, 2.5, L.body); c.circle(4, 21, 2.5, L.body); c.circle(28, 23, 3, L.body); c.circle(10, 27, 2, L.body); c.circle(23, 28, 2, L.body);
+    c.rect(15, 24, 3, 6, L.shade); c.circle(16.5, 30, 1.5, L.shade); c.circle(11, 12, 1.6, L.hi); face(c, 10, 12);
   },
 };
 function flagship(c) {

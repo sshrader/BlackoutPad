@@ -322,15 +322,15 @@ function check(label, ok, extra) { console.log((ok ? 'PASS ' : 'FAIL ') + label 
       const cc = await chainM.coinChain(mock, MINT, DEV, '');
       check('the audit reads the mint and freeze authorities', cc.authority && cc.authority.mint === null && cc.authority.freeze === 'FreezeFreezeFreeze1111');
       check('the launch scan finds early buyers and what they hold', cc.launch && cc.launch.early === 2 && cc.launch.wallets === 1 && cc.launch.heldCount === 1 && cc.launch.heldPct === 20, JSON.stringify(cc.launch));
-      const au = statusReport({ name: 'A', role: 'PYLON', ability: require('../grid.js').ABILITIES.PYLON }, {}, cc, 1).ability, hu = statusReport({ name: 'H', role: 'COOLING', ability: require('../grid.js').ABILITIES.COOLING }, {}, cc, 1).ability;
+      const au = statusReport({ name: 'A', role: 'PELLET', ability: require('../grid.js').ABILITIES.PELLET }, {}, cc, 1).ability, hu = statusReport({ name: 'H', role: 'NUGGET', ability: require('../grid.js').ABILITIES.NUGGET }, {}, cc, 1).ability;
       check('auditor and hunter report what they found', au.lines[0].level === 'good' && au.lines[1].level === 'warn' && hu.lines[1].level === 'warn' && /20%/.test(hu.lines[1].text));
-      const wd = statusReport({ name: 'W', role: 'BATTERY', ability: require('../grid.js').ABILITIES.BATTERY }, {}, { supply: 1e9, devHoldPct: 10, holders: [], curve: { complete: false, progress: 40, raisedSol: 30, vSol: 60, vTok: 700e6 } }, 1).ability;
+      const wd = statusReport({ name: 'W', role: 'SPLAT', ability: require('../grid.js').ABILITIES.SPLAT }, {}, { supply: 1e9, devHoldPct: 10, holders: [], curve: { complete: false, progress: 40, raisedSol: 30, vSol: 60, vTok: 700e6 } }, 1).ability;
       check('warden works out a sale from the curve reserves', /sold everything/.test(wd.lines[1].text) && /fall about/.test(wd.lines[1].text), JSON.stringify(wd.lines));
     }
     const abs = require('../grid.js').ABILITIES, rr = (role, w) => statusReport({ name: 'X', role, ability: abs[role] }, { launchedAt: 1000 }, { curve: { complete: false, progress: 52, raisedSol: 44, marketCapSol: 80 }, devHoldPct: 3, top10Pct: 20, holderCount: 41, errors: [] }, 3 * 3600000, w).ability;
     const hist = { first: { at: 0, cap: 50, holders: 20, dev: 8, top10: 30 }, peak: { cap: { v: 100, at: 1e5 }, holders: { v: 45, at: 2e5 }, curve: { v: 55, at: 2e5 } }, marks: { 25: 6e4 }, devMax: 8, n: 6 };
     check('every class has its own named ability', Object.keys(abs).length === 9 && new Set(Object.values(abs).map((a) => a.name)).size === 9);
-    check('abilities compare now with what the agent saw before', /up 21/.test(rr('TURBINE', hist).lines[1].text) && /up 60%/.test(rr('TRANSFORMER', hist).lines[1].text) && rr('SUBSTATION', hist).lines.some((l) => l.level === 'warn' && /fell from 8%/.test(l.text)) && /25%/.test(rr('SOLAR', hist).lines[0].text));
+    check('abilities compare now with what the agent saw before', /up 21/.test(rr('SWIRL', hist).lines[1].text) && /up 60%/.test(rr('PUDDLE', hist).lines[1].text) && rr('LOG', hist).lines.some((l) => l.level === 'warn' && /fell from 8%/.test(l.text)) && /25%/.test(rr('PILE', hist).lines[0].text));
     check('abilities work with no history and the flagship sweeps them all', Object.keys(abs).every((k) => rr(k, null).lines.length > 0) && rr('FLAGSHIP', hist).lines.length === 11);
     const done = statusReport({ name: 'ZED', role: 'NAVIGATOR' }, {}, { curve: { complete: true, progress: 100, raisedSol: 85, marketCapSol: 400 } }, 1);
     check('a graduated coin says so', done.lines[0].level === 'good' && /graduated/.test(done.lines[0].text));
