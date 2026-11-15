@@ -73,6 +73,11 @@ a.bear.launched:hover,a.bear.launched:focus-visible{border-color:var(--gold)}
 .founder h3{font:800 22px var(--sans);margin:2px 0 4px;overflow-wrap:anywhere}
 .founder p{margin:0 0 10px;color:var(--dim);font-size:14px;max-width:54ch}
 .founder a.btn{text-decoration:none;display:inline-block}
+.openmenu{display:inline-block;position:relative;margin:10px 0 0 12px;vertical-align:middle}
+.openmenu summary{list-style:none;cursor:pointer;font:700 14px var(--sans);background:var(--gold);color:#030304;border-radius:99px;padding:8px 16px}
+.openmenu summary::-webkit-details-marker{display:none}.openmenu summary::after{content:' ▾'}
+.openlist{position:absolute;z-index:5;left:0;top:calc(100% + 6px);min-width:240px;display:grid;background:var(--surface2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.openlist a{padding:11px 14px;color:var(--fg);text-decoration:none;font-size:14px}.openlist a:hover,.openlist a:focus-visible{background:var(--line)}
 .recent{display:flex;gap:10px;flex-wrap:wrap}
 .recent a{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:5px 14px 5px 5px;color:var(--fg);text-decoration:none;min-width:0}
 .recent a:hover{border-color:var(--gold)}
@@ -162,6 +167,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
     <div><label for="buy">Your first buy in SOL <span class="rv" id="buyhint">0 to 5</span></label><input type="text" id="buy" value="0.1" inputmode="decimal"></div>
     <div><label>Logo</label><div class="note" id="pick">Random grid asset, chosen when you launch.</div><div id="customlogo" hidden style="margin-top:10px"><label for="logofile">Custom logo <span class="rv">founder only, optional</span></label><input type="file" id="logofile" accept="image/png,image/jpeg,image/webp"><div class="note">Leave empty to use the pet’s picture. It is squared to 512 px.</div></div></div>
   </div>
+  <div><label for="after">After launch, open</label><select id="after"><option value="coin">The coin page on BlackoutPad</option><option value="gmgn">GMGN (mainnet only)</option><option value="none">Nothing, I will pick from the menu</option></select></div>
   <div class="note" id="feenote"></div>
   <div class="row"><button class="btn go" id="go" type="button">Launch</button><button class="btn" id="air" type="button" hidden>Get 1 devnet SOL</button><span class="msg" id="msg"></span></div>
   <div class="log" id="log"></div>
@@ -416,9 +422,10 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
     if(!/^\d{1,2}(\.\d{1,3})?$/.test(bv)||+bv>st.maxBuy){say('Your first buy must be a number from 0 to '+st.maxBuy+' SOL.','err');return}
     running=true;$('go').disabled=true;
     var token=null,gm=null;
-    // Founder coin on mainnet: open a tab now (while the click still counts), point it at GMGN once the coin exists.
+    // open the tab now, while the click still counts, and point it at the chosen page once the coin exists
+    var after=$('after').value;if(after==='gmgn'&&st.cluster!=='mainnet')after='coin';
+    if(after!=='none'){try{gm=window.open('about:blank','_blank')}catch(e){gm=null}}
     var isFounderWallet=!!(st.founder&&pubkey&&short(pubkey)===st.founder.short);
-    if((pickSlot==='founder'||isFounderWallet)&&st.cluster==='mainnet'){try{gm=window.open('about:blank','_blank')}catch(e){gm=null}}
     try{
       if(!pubkey){await connect();if(!pubkey)return}
       var p=phantom();
@@ -453,7 +460,10 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
       var m=document.createElement('div');m.style.cssText='margin:8px 0;color:#39ff88;font-family:var(--mono)';m.textContent=out.mint;box.appendChild(m);
       var cp=document.createElement('button');cp.className='cp';cp.type='button';cp.textContent='Copy';cp.onclick=function(){try{navigator.clipboard.writeText(out.mint).then(function(){cp.textContent='Copied'},function(){cp.textContent='Select and copy'})}catch(e){cp.textContent='Select and copy'}};box.appendChild(cp);
       var M=out.mint,link=st.cluster==='mainnet'?'https://pump.fun/coin/'+M:'https://explorer.solana.com/address/'+M+'?cluster=devnet';
-      var a=document.createElement('a');a.href=link;a.target='_blank';a.rel='noopener';a.textContent=st.cluster==='mainnet'?'Open on pump.fun':'Open on Solana Explorer (devnet)';a.style.cssText='margin-left:12px;color:#39ff88';box.appendChild(a);
+      var dd=document.createElement('details');dd.className='openmenu';var sm=document.createElement('summary');sm.textContent='Open coin';dd.appendChild(sm);
+      var ml=document.createElement('div');ml.className='openlist';
+      [['Coin page on BlackoutPad','/coin/'+M],[st.cluster==='mainnet'?'pump.fun':'Solana Explorer (devnet)',link]].concat(st.cluster==='mainnet'?[['GMGN','https://gmgn.ai/sol/token/'+M]]:[]).forEach(function(o){var x=document.createElement('a');x.href=o[1];x.target='_blank';x.rel='noopener';x.textContent=o[0];ml.appendChild(x)});
+      dd.appendChild(ml);box.appendChild(dd);
       var n=document.createElement('div');n.style.marginTop='10px';
       var parts=[];
       if(sh)parts.push(out.splitError?'The fee split did NOT go through ('+out.splitError+'), so creator fees currently go only to you. BlackoutPad expects its 5%, so please set the split from pump.fun.':'Creator fee split confirmed: '+(100-st.platform.bps)+'% you, '+(st.platform.bps/100)+'% the Den.');
@@ -465,14 +475,10 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
           if(rr.ok){s4('ok','locked');rl.remove();refresh()}else{s4('warn',rr.json.error||'Still could not confirm. Your coin is live; BlackoutPad owner can attach it to its agent.');rl.disabled=false}};
         box.appendChild(rl);
       }
-      if((isFounder||isFounderWallet)&&st.cluster==='mainnet'){
-        var gu='https://gmgn.ai/sol/token/'+M,opened=false;
-        try{if(gm&&!gm.closed){try{gm.opener=null}catch(e7){}gm.location.href=gu;opened=true}}catch(e5){}
-        var gw=document.createElement('div');gw.style.cssText='margin-top:14px';
-        var ga=document.createElement('a');ga.href=gu;ga.target='_blank';ga.rel='noopener';ga.className='btn';ga.textContent=opened?'GMGN opened in a new tab. Open it again':'Open on GMGN';ga.style.cssText='display:inline-block;text-decoration:none;border-color:#39ff88;color:#fff';gw.appendChild(ga);
-        if(!opened){var gn=document.createElement('div');gn.style.cssText='margin-top:6px;font-size:13px;opacity:.8';gn.textContent='Your browser did not open GMGN by itself (pop-ups are often blocked). Press the button, and allow pop-ups for this site to have it open on its own next time.';gw.appendChild(gn)}
-        box.appendChild(gw);gm=null;
-      }
+      var target=after==='gmgn'?'https://gmgn.ai/sol/token/'+M:'/coin/'+M,opened=false;
+      try{if(gm&&!gm.closed){try{gm.opener=null}catch(e7){}gm.location.href=target;opened=true}}catch(e5){}
+      if(after!=='none'&&!opened){var gn=document.createElement('div');gn.style.cssText='margin-top:6px;font-size:13px;opacity:.8';gn.textContent='Your browser blocked the new tab (pop-ups). Use the Open coin menu above, and allow pop-ups for this site to have it open by itself next time.';box.appendChild(gn)}
+      gm=null;
       box.classList.add('on');pickSlot=null;showPick();refresh();
     }catch(e){console.error(e)}
     finally{
