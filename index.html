@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="icon" href="/favicon.svg?v=4" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<title>DoomPad</title>
+<title>PooPad 💩</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -118,11 +118,11 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
 <canvas id="bg" aria-hidden="true"></canvas>
 <div class="veil" aria-hidden="true"></div>
 
-<div id="splash" role="dialog" aria-label="DoomPad intro">
+<div id="splash" role="dialog" aria-label="PooPad intro">
   <canvas id="sc" aria-hidden="true"></canvas>
   <div class="slog" id="slog" aria-hidden="true"></div>
   <div class="cap">
-    <h2>DoomPad</h2>
+    <h2>PooPad</h2>
     <p>The grid is going dark. Pick an asset.</p>
     <button id="enter" type="button">Proceed ›</button>
   </div>
@@ -130,7 +130,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
 
 <div class="wrap">
 <header>
-  <div class="logo"><span id="logoicon" style="display:inline-flex;width:28px;height:28px"></span>DoomPad<span class="net" id="net">devnet</span></div>
+  <div class="logo"><span id="logoicon" style="display:inline-flex;width:28px;height:28px;font-size:26px;line-height:1;align-items:center">💩</span>PooPad<span class="net" id="net">devnet</span></div>
   <div class="ticker" id="ticker" hidden>
     <span class="tk" title="Bitcoin"><svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><circle cx="16" cy="16" r="16" fill="#f7931a"/><text x="16" y="23" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="700" font-size="21" fill="#fff">₿</text></svg><b id="pbtc">…</b></span>
     <span class="tk" title="Solana"><svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><defs><linearGradient id="solg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#9945ff"/><stop offset="1" stop-color="#14f195"/></linearGradient></defs><circle cx="16" cy="16" r="16" fill="#12141c"/><g fill="url(#solg)"><path d="M10 20h13l-2 2.800H8zM10 9.200h13l-2 2.800H8zM8 14.600h13l2 2.800H10z"/></g></svg><b id="psol">…</b></span>
@@ -138,12 +138,12 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
   <button class="wallet" id="wbtn" type="button"><span id="wlabel">Connect Phantom</span></button>
 </header>
 
-<h1>Lights out. <span>Launch a coin.</span></h1>
+<h1>When it hits the fan. <span>Launch a coin.</span></h1>
 <p class="lede">The headlines say World War 3. The rumours say a 90-day blackout. While the grid wobbles, make your own coin. Every coin launched here claims one piece of the power grid as its logo (a wind turbine, solar array, cooling tower, diesel generator, substation, pole transformer, pylon or battery bank), and it stays with that coin for good. Each one has a worried face and reports the coin’s public numbers, read from the chain.</p>
 
 <div id="recent" hidden><h2>Recent launches</h2><div class="recent" id="recentlist"></div></div>
 
-<h2>DoomPad</h2>
+<h2>PooPad</h2>
 <div class="founder" id="founder" hidden></div>
 
 <h2>Generators & Distributors</h2>
@@ -167,7 +167,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
     <div><label for="buy">Your first buy in SOL <span class="rv" id="buyhint">0 to 5</span></label><input type="text" id="buy" value="0.1" inputmode="decimal"></div>
     <div><label>Logo</label><div class="note" id="pick">Random grid asset, chosen when you launch.</div><div id="customlogo" hidden style="margin-top:10px"><label for="logofile">Custom logo <span class="rv">founder only, optional</span></label><input type="file" id="logofile" accept="image/png,image/jpeg,image/webp"><div class="note">Leave empty to use the pet’s picture. It is squared to 512 px.</div></div></div>
   </div>
-  <div><label for="after">After launch, open</label><select id="after"><option value="coin">The coin page on DoomPad</option><option value="gmgn">GMGN (mainnet only)</option><option value="none">Nothing, I will pick from the menu</option></select></div>
+  <div><label for="after">After launch, open</label><select id="after"><option value="coin">The coin page on PooPad</option><option value="gmgn">GMGN (mainnet only)</option><option value="none">Nothing, I will pick from the menu</option></select></div>
   <div class="note" id="feenote"></div>
   <div class="row"><button class="btn go" id="go" type="button">Launch</button><button class="btn" id="air" type="button" hidden>Get 1 devnet SOL</button><span class="msg" id="msg"></span></div>
   <div class="log" id="log"></div>
@@ -176,13 +176,13 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
 
 <h2>Creator fees</h2>
 <div class="panel">
-  <div class="note">Every trade on your coin earns creator fees. Connect the wallet you launched from to see what is waiting. Coins with DoomPad fee split are paid out to you and DoomPad together; the payout asks for your approval and you pay its small network fee.</div>
+  <div class="note">Every trade on your coin earns creator fees. Connect the wallet you launched from to see what is waiting. Coins with PooPad fee split are paid out to you and PooPad together; the payout asks for your approval and you pay its small network fee.</div>
   <div class="row"><button class="btn" id="feechk" type="button">Check my fees</button></div>
   <div class="log" id="feelog"></div>
   <div id="feelist" style="display:grid;gap:8px"></div>
 </div>
 
-<p class="fine">Launching creates a real coin on Solana's <span id="fnet">devnet</span>. You sign every transaction in your own wallet and pay its fees; DoomPad never holds your SOL. Your first buy goes in the same transaction as the launch, so nobody can buy before you. A coin can lose all of its value, and its character has no promised value. DoomPad does not vouch for any coin launched here. Nothing here is financial advice.</p>
+<p class="fine">Launching creates a real coin on Solana's <span id="fnet">devnet</span>. You sign every transaction in your own wallet and pay its fees; PooPad never holds your SOL. Your first buy goes in the same transaction as the launch, so nobody can buy before you. A coin can lose all of its value, and its character has no promised value. PooPad does not vouch for any coin launched here. Nothing here is financial advice.</p>
 <footer>Grid assets drawn by code. <button type="button" id="replay">Replay the intro</button></footer>
 </div>
 
@@ -232,7 +232,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
   var st=null,pubkey=null,pickSlot=null,running=false,steps=[];
   function short(a){return a.slice(0,4)+'…'+a.slice(-4)}
   function prev(n){return n==='F'?'/api/founder.png':'/api/preview/'+n+'.png'}
-  function bearName(n){if(n==='founder'||n==='F')return 'DoomPad';var a=st&&st.bears&&st.bears.filter(function(b){return b.n===n})[0];return a&&a.agent?a.agent.name:'Agent #'+String(n).padStart(2,'0')}
+  function bearName(n){if(n==='founder'||n==='F')return 'PooPad';var a=st&&st.bears&&st.bears.filter(function(b){return b.n===n})[0];return a&&a.agent?a.agent.name:'Agent #'+String(n).padStart(2,'0')}
   function phantom(){var p=window.phantom&&window.phantom.solana;return p&&p.isPhantom?p:(window.solana&&window.solana.isPhantom?window.solana:null)}
   function say(t,cls){var m=$('msg');m.textContent=t||'';m.className='msg'+(cls?' '+cls:'')}
   function bearIcon(runs,fill){
@@ -266,27 +266,27 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
   }
   var feeNoteBase='';
   function showPick(){
-    $('pick').textContent=pickSlot==='founder'?'DoomPad, the flagship. One of one.':pickSlot?(bearName(pickSlot)+' is yours if you launch now.'):'Random grid asset, chosen when you launch.';
+    $('pick').textContent=pickSlot==='founder'?'PooPad, the flagship. One of one.':pickSlot?(bearName(pickSlot)+' is yours if you launch now.'):'Random grid asset, chosen when you launch.';
     $('customlogo').hidden=!(st&&st.founder&&(pickSlot==='founder'||(pubkey&&short(pubkey)===st.founder.short)));
     $('feenote').textContent=pickSlot==='founder'?'Founder launch: all creator fees go to your wallet.':feeNoteBase;
   }
   function drawFounder(){
     var f=st&&st.founder,box=$('founder');
-    box.hidden=!f;[].slice.call(document.querySelectorAll('h2')).forEach(function(h){if(h.textContent==='DoomPad')h.hidden=!f});
+    box.hidden=!f;[].slice.call(document.querySelectorAll('h2')).forEach(function(h){if(h.textContent==='PooPad')h.hidden=!f});
     if(!f)return;box.textContent='';
-    var im=document.createElement('img');im.src='/api/founder.png';im.alt='DoomPad, the flagship: a substation in a gold crown, sweating gold';box.appendChild(im);
+    var im=document.createElement('img');im.src='/api/founder.png';im.alt='PooPad, the flagship: a crowned poop, sweating green';box.appendChild(im);
     var d=document.createElement('div'),tg=document.createElement('div'),h=document.createElement('h3'),p=document.createElement('p');
     tg.className='tag';tg.textContent='Flagship · one of one';d.appendChild(tg);
     if(f.state==='launched'){
-      h.textContent=(f.name||'DoomPad coin')+' · $'+f.symbol;p.textContent='The flagship is locked to DoomPad’s own coin.';d.appendChild(h);d.appendChild(p);
+      h.textContent=(f.name||'PooPad coin')+' · $'+f.symbol;p.textContent='The flagship is locked to PooPad’s own coin.';d.appendChild(h);d.appendChild(p);
       if(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(f.mint||'')){var a=document.createElement('a');a.className='btn go';a.href='/coin/'+f.mint;a.textContent='Open the coin page';d.appendChild(a)}
     }else{
-      h.textContent='DoomPad';
-      p.textContent=f.state==='held'?'The flagship coin is being launched right now.':'A substation in a gold crown, sweating gold. Not in the numbered set, and reserved for DoomPad’s founder wallet ('+f.short+').';
+      h.textContent='PooPad';
+      p.textContent=f.state==='held'?'The flagship coin is being launched right now.':'A crowned poop, sweating green. Not in the numbered set, and reserved for PooPad’s founder wallet ('+f.short+').';
       d.appendChild(h);d.appendChild(p);
       if(f.agent&&f.agent.ability){var pa=document.createElement('p');pa.style.cssText='margin:6px 0 0;font-size:14px;color:var(--dim)';var pb=document.createElement('b');pb.style.color='var(--gold)';pb.textContent='Special ability: '+f.agent.ability.name+'. ';pa.appendChild(pb);pa.appendChild(document.createTextNode(f.agent.ability.does));d.appendChild(pa)}
-      if(f.state==='reserved'&&pubkey&&short(pubkey)===f.short){var b=document.createElement('button');b.type='button';b.className='btn go';b.textContent=pickSlot==='founder'?'DoomPad selected':'Launch the DoomPad coin';
-        b.addEventListener('click',function(){pickSlot='founder';drawBears();drawFounder();showPick();say('DoomPad selected. Fill in the coin details below and launch.','ok');$('nm').scrollIntoView({behavior:'smooth',block:'center'})});d.appendChild(b)}
+      if(f.state==='reserved'&&pubkey&&short(pubkey)===f.short){var b=document.createElement('button');b.type='button';b.className='btn go';b.textContent=pickSlot==='founder'?'PooPad selected':'Launch the PooPad coin';
+        b.addEventListener('click',function(){pickSlot='founder';drawBears();drawFounder();showPick();say('PooPad selected. Fill in the coin details below and launch.','ok');$('nm').scrollIntoView({behavior:'smooth',block:'center'})});d.appendChild(b)}
     }
     box.appendChild(d);
   }
@@ -310,7 +310,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
       $('fnet').textContent=j.cluster==='mainnet'?'mainnet, with real SOL':'devnet, which is free test money';
       $('buyhint').textContent='0 to '+j.maxBuy;$('air').hidden=j.cluster==='mainnet';
       $('feenote').textContent='';
-      if(j.platform){var pct=j.platform.bps/100;var nb=document.createElement('b');nb.textContent=(100-pct)+'% to you';$('feenote').appendChild(document.createTextNode('Creator fees from trading: '));$('feenote').appendChild(nb);$('feenote').appendChild(document.createTextNode(' and '+pct+'% to DoomPad. You approve the split in your wallet right after the launch.'))}
+      if(j.platform){var pct=j.platform.bps/100;var nb=document.createElement('b');nb.textContent=(100-pct)+'% to you';$('feenote').appendChild(document.createTextNode('Creator fees from trading: '));$('feenote').appendChild(nb);$('feenote').appendChild(document.createTextNode(' and '+pct+'% to PooPad. You approve the split in your wallet right after the launch.'))}
       else $('feenote').textContent='Creator fees from trading all go to your wallet.';
       feeNoteBase=$('feenote').textContent;showPick();
       if(!$('logoicon').firstChild)$('logoicon').appendChild(bearIcon(j.silhouette||[],'#39ff88'));
@@ -329,7 +329,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
     return p.connect().then(function(r){pubkey=r.publicKey.toString();$('wlabel').textContent=short(pubkey);$('wbtn').classList.add('on');drawFounder();showPick()}).catch(function(){say('The connection request was declined.','err')});
   }
   $('wbtn').addEventListener('click',connect);
-  $('rand').addEventListener('click',function(){pickSlot=null;drawBears();showPick();say('DoomPad will choose a random open agent when you launch.','ok')});
+  $('rand').addEventListener('click',function(){pickSlot=null;drawBears();showPick();say('PooPad will choose a random open agent when you launch.','ok')});
 
   function drawLog(){
     var l=$('log');l.textContent='';
@@ -462,17 +462,17 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
       var M=out.mint,link=st.cluster==='mainnet'?'https://pump.fun/coin/'+M:'https://explorer.solana.com/address/'+M+'?cluster=devnet';
       var dd=document.createElement('details');dd.className='openmenu';var sm=document.createElement('summary');sm.textContent='Open coin';dd.appendChild(sm);
       var ml=document.createElement('div');ml.className='openlist';
-      [['Coin page on DoomPad','/coin/'+M],[st.cluster==='mainnet'?'pump.fun':'Solana Explorer (devnet)',link]].concat(st.cluster==='mainnet'?[['GMGN','https://gmgn.ai/sol/token/'+M]]:[]).forEach(function(o){var x=document.createElement('a');x.href=o[1];x.target='_blank';x.rel='noopener';x.textContent=o[0];ml.appendChild(x)});
+      [['Coin page on PooPad','/coin/'+M],[st.cluster==='mainnet'?'pump.fun':'Solana Explorer (devnet)',link]].concat(st.cluster==='mainnet'?[['GMGN','https://gmgn.ai/sol/token/'+M]]:[]).forEach(function(o){var x=document.createElement('a');x.href=o[1];x.target='_blank';x.rel='noopener';x.textContent=o[0];ml.appendChild(x)});
       dd.appendChild(ml);box.appendChild(dd);
       var n=document.createElement('div');n.style.marginTop='10px';
       var parts=[];
-      if(sh)parts.push(out.splitError?'The fee split did NOT go through ('+out.splitError+'), so creator fees currently go only to you. DoomPad expects its 5%, so please set the split from pump.fun.':'Creator fee split confirmed: '+(100-st.platform.bps)+'% you, '+(st.platform.bps/100)+'% the Den.');
+      if(sh)parts.push(out.splitError?'The fee split did NOT go through ('+out.splitError+'), so creator fees currently go only to you. PooPad expects its 5%, so please set the split from pump.fun.':'Creator fee split confirmed: '+(100-st.platform.bps)+'% you, '+(st.platform.bps/100)+'% the Den.');
       if(+bv>0)parts.push(out.atomic?'Your first buy landed in the same transaction as the launch.':'WARNING: the launch and your buy were separate transactions, so someone could have bought in between.'+(out.buyError?' The buy did not go through, see the log.':''));
       n.textContent=parts.join(' ');box.appendChild(n);
       if(lockFailed){
         var rl=document.createElement('button');rl.type='button';rl.className='btn';rl.style.cssText='margin-top:10px';rl.textContent='Try locking the agent again';
         rl.onclick=async function(){rl.disabled=true;var s4=step('Lock the agent');var rr=await post('/api/launched',{mint:out.mint,signature:out.signature,splitSignature:out.splitSignature||''},token);
-          if(rr.ok){s4('ok','locked');rl.remove();refresh()}else{s4('warn',rr.json.error||'Still could not confirm. Your coin is live; DoomPad owner can attach it to its agent.');rl.disabled=false}};
+          if(rr.ok){s4('ok','locked');rl.remove();refresh()}else{s4('warn',rr.json.error||'Still could not confirm. Your coin is live; PooPad owner can attach it to its agent.');rl.disabled=false}};
         box.appendChild(rl);
       }
       var target=after==='gmgn'?'https://gmgn.ai/sol/token/'+M:'/coin/'+M,opened=false;

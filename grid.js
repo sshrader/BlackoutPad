@@ -1,5 +1,5 @@
 'use strict';
-// Grid assets for DoomPad: eight original pieces of the power grid, drawn as 32 x 32 pixel sprites with a worried face.
+// Grid assets for PooPad: eight original pieces of the power grid, drawn as 32 x 32 pixel sprites with a worried face.
 // Generators make power (wind turbine, solar array, cooling tower, diesel generator). Distributors move it (substation, pole transformer,
 // pylon, battery bank). Even slots are generators and odd slots are distributors, so the teams stay level.
 // Everything is drawn here with a tiny rasterizer and a PNG encoder, so there are no dependencies and no image files.
@@ -198,11 +198,14 @@ const DRAW = {
   },
 };
 function flagship(c) {
-  c.rect(2, 27, 28, 3, INK); c.rect(6, 10, 20, 17, '#1a1f4a'); c.rect(5, 9, 22, 2, '#3a4590');
-  c.poly([[8, 9], [9, 3], [12, 6], [16, 2], [20, 6], [23, 3], [24, 9]], '#3dff9a'); c.rect(15, 3, 2, 2, '#ff4d4d');
-  face(c, 10, 13, { tear: '#9dffc4' });
+  const B = '#8a5a34', D = '#6a4226', H = '#b07a4c';
+  c.poly([[3, 28], [4, 21], [9, 19], [23, 19], [28, 21], [29, 28]], B); c.rect(4, 26, 25, 2, D);
+  c.poly([[7, 20], [9, 13], [14, 11], [18, 11], [23, 13], [25, 20]], B); c.rect(9, 14, 3, 1, H);
+  c.rect(9, 19, 15, 1, D); c.rect(12, 12, 9, 1, D);
+  c.poly([[11, 12], [13, 8], [16, 5.5], [19, 8], [21, 12]], B);
+  c.poly([[10, 6], [11, 1], [13, 3.5], [16, 0], [19, 3.5], [21, 1], [22, 6]], '#3dff9a'); c.rect(15, 2, 2, 2, '#ff4d4d');
+  face(c, 10, 14, { tear: '#9dffc4' });
 }
-
 // small extras on the corner of an asset, so two of the same kind still look different
 function accessory(c, acc, col) {
   if (acc === 'plaster') { c.poly([[1, 25], [3, 23], [9, 29], [7, 31]], '#f0d2a8'); c.rect(4.5, 26, 1, 1, '#c89a68'); c.rect(5.5, 27, 1, 1, '#c89a68'); }
