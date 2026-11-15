@@ -1,5 +1,5 @@
 'use strict';
-// Grid assets for BlackoutPad: eight original pieces of the power grid, drawn as 32 x 32 pixel sprites with a worried face.
+// Grid assets for DoomPad: eight original pieces of the power grid, drawn as 32 x 32 pixel sprites with a worried face.
 // Generators make power (wind turbine, solar array, cooling tower, diesel generator). Distributors move it (substation, pole transformer,
 // pylon, battery bank). Even slots are generators and odd slots are distributors, so the teams stay level.
 // Everything is drawn here with a tiny rasterizer and a PNG encoder, so there are no dependencies and no image files.

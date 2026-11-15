@@ -1,5 +1,5 @@
 'use strict';
-// BlackoutPad's moving backdrops, plain 2D canvas: GridBg is the dim control-room grid behind the pages, and GridIntro is the intro, a map
+// DoomPad's moving backdrops, plain 2D canvas: GridBg is the dim control-room grid behind the pages, and GridIntro is the intro, a map
 // of the power grid that is going dark. Both stop on their own when the page is hidden and respect reduced motion.
 (function (root) {
   var CYAN = '#1ff2ff', GREEN = '#39ff88', RED = '#ff3d6e', DARKLINE = '#161a3a', DARKNODE = '#0b0c1a', DARKRING = '#1f2350';
@@ -12,7 +12,7 @@
   var FLICKER = [[3, 8, 0], [6, 13, 0.6], [2, 9, 0.6]];
   var DARK = [[8, 9], [9, 10], [8, 11], [10, 12], [11, 12], [11, 13], [13, 14], [14, 15], [12, 15], [10, 11]];
   var TRIPPED = [8, 13, 11];
-  var LOGS = ['> boot blackoutpad', '> grid load 97% ... warning', '> region 7 tripped ... offline', '> region 9 tripped ... offline', '> line 14 flickering', '> backup power engaged ... ok', '> keep a light on'];
+  var LOGS = ['> boot doompad', '> grid load 97% ... warning', '> region 7 tripped ... offline', '> region 9 tripped ... offline', '> line 14 flickering', '> backup power engaged ... ok', '> keep a light on'];
 
   function sizeCanvas(cv) {
     var dpr = Math.min(root.devicePixelRatio || 1, 2), w = cv.clientWidth || root.innerWidth, h = cv.clientHeight || root.innerHeight;

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="icon" href="/favicon.svg?v=4" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<title>Coin · BlackoutPad</title>
+<title>Coin · DoomPad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -88,11 +88,11 @@ td .mini>div{height:100%;background:var(--gold)}
 <div class="veil" aria-hidden="true"></div>
 <div class="wrap">
 <header>
-  <a class="logo" href="/">BlackoutPad<span class="net" id="net">devnet</span></a>
+  <a class="logo" href="/">DoomPad<span class="net" id="net">devnet</span></a>
   <a class="back" href="/">← All friends</a>
 </header>
 
-<div id="err" class="panel"><b>That coin is not in BlackoutPad.</b><p class="note">Only coins launched here have a page. <a href="/">Back to the grid</a>.</p></div>
+<div id="err" class="panel"><b>That coin is not in DoomPad.</b><p class="note">Only coins launched here have a page. <a href="/">Back to the grid</a>.</p></div>
 
 <div id="page" hidden>
   <section class="hero">
@@ -123,7 +123,7 @@ td .mini>div{height:100%;background:var(--gold)}
   <h2>Dev and launch</h2>
   <div class="panel"><dl class="kv" id="dev"></dl></div>
 
-  <p class="fine">Numbers are read from the chain and refresh every minute. They describe this coin now and do not predict anything. A coin can lose all of its value, and its character has no promised value. The agent only reads and reports public numbers: it does not trade, hold funds or predict anything. BlackoutPad does not vouch for any coin launched here. Nothing here is financial advice.</p>
+  <p class="fine">Numbers are read from the chain and refresh every minute. They describe this coin now and do not predict anything. A coin can lose all of its value, and its character has no promised value. The agent only reads and reports public numbers: it does not trade, hold funds or predict anything. DoomPad does not vouch for any coin launched here. Nothing here is financial advice.</p>
 </div>
 </div>
 
@@ -144,12 +144,12 @@ td .mini>div{height:100%;background:var(--gold)}
 
   function draw(j){
     var main=j.cluster==='mainnet',oc=j.onchain||{},cv=oc.curve;
-    document.title=j.name+' ($'+j.symbol+') · BlackoutPad';
+    document.title=j.name+' ($'+j.symbol+') · DoomPad';
     var n=$('net');n.textContent=main?'mainnet':'devnet · test';n.className='net'+(main?' main':'');
     $('pic').src=j.bear==='F'?'/api/founder.png':'/api/preview/'+j.bear+'.png';$('pic').alt=j.name;
     $('name').textContent=j.name;$('tick').textContent='$'+j.symbol;
     var chips=$('chips');chips.textContent='';
-    chips.appendChild(el('span','chip'+(j.founder?' good':''),j.founder?'BlackoutPad · flagship, one of one':((j.agent?j.agent.name+' · '+j.agent.role.toLowerCase():'Agent #'+String(j.bear).padStart(2,'0'))+' · '+String(j.bear).padStart(2,'0')+' of '+j.total)));
+    chips.appendChild(el('span','chip'+(j.founder?' good':''),j.founder?'DoomPad · flagship, one of one':((j.agent?j.agent.name+' · '+j.agent.role.toLowerCase():'Agent #'+String(j.bear).padStart(2,'0'))+' · '+String(j.bear).padStart(2,'0')+' of '+j.total)));
     chips.appendChild(el('span','chip'+(cv&&cv.complete?' good':''),cv?(cv.complete?'Graduated':'On the bonding curve'):'Curve not read'));
     $('desc').textContent=j.description||'';
     var ab=$('agentbox');ab.textContent='';
@@ -202,7 +202,7 @@ td .mini>div{height:100%;background:var(--gold)}
     row('Dev holding',function(dd){dd.textContent=oc.devHoldPct==null?'not read':pct(oc.devHoldPct)+' of supply'});
     row('Launched',function(dd){dd.textContent=new Date(j.launchedAt).toLocaleString()});
     row('Launch transaction',function(dd){var a=el('a',null,j.signature.slice(0,8)+'…');a.href='https://explorer.solana.com/tx/'+j.signature+(main?'':'?cluster=devnet');a.target='_blank';a.rel='noopener';dd.appendChild(a)});
-    row('Creator fee split',function(dd){dd.textContent=j.founder?'Founder coin: all creator fees go to the founder wallet':j.platformBps?(j.feeSplit?'Signed: '+(100-j.platformBps/100)+'% to the dev, '+(j.platformBps/100)+'% to BlackoutPad':'Not signed by the dev. All creator fees go to the dev.'):'All creator fees go to the dev'});
+    row('Creator fee split',function(dd){dd.textContent=j.founder?'Founder coin: all creator fees go to the founder wallet':j.platformBps?(j.feeSplit?'Signed: '+(100-j.platformBps/100)+'% to the dev, '+(j.platformBps/100)+'% to DoomPad':'Not signed by the dev. All creator fees go to the dev.'):'All creator fees go to the dev'});
     row('Mint',function(dd){dd.textContent=j.mint});
     $('page').hidden=false;
   }
