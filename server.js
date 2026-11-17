@@ -1,5 +1,5 @@
 'use strict';
-// WantedPad: anyone can launch a pump.fun coin. Each launch claims one of a small set of crooks as its logo,
+// Wanted: anyone can launch a pump.fun coin. Each launch claims one of a small set of crooks as its logo,
 // and that agent is then locked to the coin. The launcher signs everything from their own wallet.
 const http = require('http');
 const fs = require('fs');
@@ -77,7 +77,7 @@ function verifySignature(wallet, message, sigB64) {
 
 const challenges = new Map();
 function challengeMessage(wallet, nonce, expires) {
-  return 'WantedPad Launch\nSign to prove you own this wallet. This sends no transaction and costs nothing.\nWallet: ' + wallet + '\nNonce: ' + nonce + '\nExpires: ' + new Date(expires).toISOString();
+  return 'Wanted Launch\nSign to prove you own this wallet. This sends no transaction and costs nothing.\nWallet: ' + wallet + '\nNonce: ' + nonce + '\nExpires: ' + new Date(expires).toISOString();
 }
 
 const hits = new Map();
@@ -162,7 +162,7 @@ function saveBears(c, d) { const f = bearsFile(c); fs.writeFileSync(f + '.tmp', 
 const holdFor = (d, token) => { for (const k of Object.keys(d.holds)) if (d.holds[k].token === token) return { slot: k === 'F' ? 'F' : Number(k), hold: d.holds[k] }; return null; };
 const bearLabel = (slot) => (slot === 'F' ? 'founder' : slot + 1); // what the pages are told
 const FAVICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0c0a18"/><polygon points="32,8 38,26 57,26 42,38 48,56 32,45 16,56 22,38 7,26 26,26" fill="#ff2d95"/></svg>';
-const PRIME = { name: 'WantedPad', role: 'FLAGSHIP', blurb: 'The one-of-one flagship. The Kingpin: a fedora, gold shades and a chain. Reserved for WantedPad’s founder wallet.', ability: art.ABILITIES.FLAGSHIP };
+const PRIME = { name: 'Wanted', role: 'FLAGSHIP', blurb: 'The one-of-one flagship. The Kingpin: a fedora, gold shades and a chain. Reserved for Wanted’s founder wallet.', ability: art.ABILITIES.FLAGSHIP };
 const shortAddr = (a) => a.slice(0, 4) + '…' + a.slice(-4);
 
 // BTC / SOL spot prices for the header ticker (cached 30s, tries several free sources)
@@ -231,7 +231,7 @@ async function reserve(req, res) {
   let slot;
   if (body.slot === 'founder') {
     // The Founder bear is not in the numbered set. Only FOUNDER_WALLET can take it, and only once per network.
-    if (!c.founderWallet || wallet !== c.founderWallet) { saveBears(c, d); return send(res, 403, { error: 'That agent is reserved for the WantedPad founder.' }); }
+    if (!c.founderWallet || wallet !== c.founderWallet) { saveBears(c, d); return send(res, 403, { error: 'That agent is reserved for the Wanted founder.' }); }
     if (d.launched.F) { saveBears(c, d); return send(res, 409, { error: 'The founder coin has already been launched.' }); }
     if (d.holds.F) { saveBears(c, d); return send(res, 409, { error: 'The flagship is being launched right now.' }); }
     slot = 'F';
@@ -365,7 +365,7 @@ async function coinInfo(res, mint) {
   const c = cfg();
   if (!B58_RE.test(mint)) return send(res, 404, { error: 'No such coin.' });
   const f = findLaunched(c, mint);
-  if (!f) return send(res, 404, { error: 'That coin was not launched from WantedPad.' });
+  if (!f) return send(res, 404, { error: 'That coin was not launched from Wanted.' });
   const key = c.cluster + ':' + mint, hit = coinCache.get(key);
   let onchain;
   if (hit && Date.now() - hit.at < 45000) onchain = hit.data;
@@ -406,7 +406,7 @@ async function adminState(req, res) {
   };
   const bears = [];
   for (let i = 0; i < c.total; i++) bears.push(row(String(i), 'Agent #' + String(i + 1).padStart(2, '0')));
-  if (c.founderWallet || d.launched.F || d.holds.F) bears.unshift(row('F', 'WantedPad'));
+  if (c.founderWallet || d.launched.F || d.holds.F) bears.unshift(row('F', 'Wanted'));
   send(res, 200, { cluster: c.cluster, total: c.total, founderWallet: c.founderWallet || null, platformWallet: c.platformWallet || null, bears });
 }
 
@@ -581,5 +581,5 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-if (require.main === module) server.listen(PORT, '0.0.0.0', () => console.log('WantedPad listening on ' + PORT + ', data in ' + DATA_DIR));
+if (require.main === module) server.listen(PORT, '0.0.0.0', () => console.log('Wanted listening on ' + PORT + ', data in ' + DATA_DIR));
 module.exports = server;

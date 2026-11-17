@@ -1,5 +1,5 @@
 'use strict';
-// The crooks for WantedPad: eight original characters drawn as 48 x 48 pixel mugshots, plus a one-of-one Kingpin for the flagship.
+// The crooks for Wanted: eight original characters drawn as 48 x 48 pixel mugshots, plus a one-of-one Kingpin for the flagship.
 // Street Crew (robber, driver, safecracker, hacker) and the Syndicate (boss, lookout, muscle, accountant). Even slots are crew and odd
 // slots are syndicate, so the teams stay level. Everything is drawn here with a tiny rasterizer and a PNG encoder: no libraries, no image files.
 const crypto = require('crypto');
@@ -14,28 +14,28 @@ const mk = (list) => list.map((l, i) => Object.assign({ skin: i }, l));
 const SPECIES = {
   crew: {
     robber: { name: 'Robber', w: 14, looks: mk([
-      { n: 'Black mask', mask: '#2b2838', shirt: '#e8e8f0', stripe: '#1a1626', hair: '#3a2a1e' }, { n: 'Red mask', mask: '#a8263a', shirt: '#e8e8f0', stripe: '#1a1626', hair: '#2a1a12' },
-      { n: 'Navy mask', mask: '#26356a', shirt: '#f0e8d8', stripe: '#26356a', hair: '#1a1410' }, { n: 'Grey mask', mask: '#6a6e7a', shirt: '#e8e8f0', stripe: '#8a1f3a', hair: '#141018' }]) },
+      { n: 'Black bandana', mask: '#2b2838', shirt: '#e8e8f0', stripe: '#1a1626', hair: '#3a2a1e' }, { n: 'Red bandana', mask: '#a8263a', shirt: '#e8e8f0', stripe: '#1a1626', hair: '#2a1a12' },
+      { n: 'Navy bandana', mask: '#26356a', shirt: '#f0e8d8', stripe: '#26356a', hair: '#1a1410' }, { n: 'Grey bandana', mask: '#6a6e7a', shirt: '#e8e8f0', stripe: '#8a1f3a', hair: '#141018' }]) },
     driver: { name: 'Driver', w: 14, looks: mk([
-      { n: 'Orange cap', cap: '#ff8a3d', brim: '#c96a1e', jacket: '#3a5a8a', hair: '#4a3020' }, { n: 'Teal cap', cap: '#19a89a', brim: '#11786e', jacket: '#5a3a2a', hair: '#2a1a12' },
-      { n: 'Black cap', cap: '#26242e', brim: '#141018', jacket: '#8a1f3a', hair: '#1a1410' }, { n: 'White cap', cap: '#e8e8f0', brim: '#b8b8c4', jacket: '#2a2a38', hair: '#141018' }]) },
+      { n: 'Orange flat cap', cap: '#ff8a3d', brim: '#c96a1e', jacket: '#3a5a8a', hair: '#4a3020' }, { n: 'Teal flat cap', cap: '#19a89a', brim: '#11786e', jacket: '#5a3a2a', hair: '#2a1a12' },
+      { n: 'Black flat cap', cap: '#26242e', brim: '#141018', jacket: '#8a1f3a', hair: '#1a1410' }, { n: 'White flat cap', cap: '#e8e8f0', brim: '#b8b8c4', jacket: '#2a2a38', hair: '#141018' }]) },
     safecracker: { name: 'Safecracker', w: 14, looks: mk([
-      { n: 'Teal beanie', beanie: '#19a89a', shirt: '#5a4a3a', hair: '#4a3020' }, { n: 'Grey beanie', beanie: '#6a6e7a', shirt: '#3a4a5a', hair: '#2a1a12' },
-      { n: 'Red beanie', beanie: '#a8263a', shirt: '#4a4a3a', hair: '#1a1410' }, { n: 'Mustard beanie', beanie: '#c9a02a', shirt: '#3a2a3a', hair: '#141018' }]) },
+      { n: 'Teal bowler', beanie: '#19a89a', shirt: '#5a4a3a', hair: '#4a3020' }, { n: 'Grey bowler', beanie: '#6a6e7a', shirt: '#3a4a5a', hair: '#2a1a12' },
+      { n: 'Red bowler', beanie: '#a8263a', shirt: '#4a4a3a', hair: '#1a1410' }, { n: 'Mustard bowler', beanie: '#c9a02a', shirt: '#3a2a3a', hair: '#141018' }]) },
     hacker: { name: 'Hacker', w: 14, looks: mk([
-      { n: 'Violet hoodie', hood: '#3a2a6a', lens: '#19e3d0', hair: '#4a3020' }, { n: 'Black hoodie', hood: '#1e1c26', lens: '#ff2d95', hair: '#2a1a12' },
-      { n: 'Green hoodie', hood: '#1f5a4a', lens: '#ffd24a', hair: '#1a1410' }, { n: 'Grey hoodie', hood: '#555a68', lens: '#19e3d0', hair: '#141018' }]) },
+      { n: 'Violet trilby', hat: '#2a2050', hood: '#3a2a6a', lens: '#19e3d0', hair: '#4a3020' }, { n: 'Black trilby', hat: '#121018', hood: '#1e1c26', lens: '#ff2d95', hair: '#2a1a12' },
+      { n: 'Green trilby', hat: '#16403a', hood: '#1f5a4a', lens: '#ffd24a', hair: '#1a1410' }, { n: 'Grey trilby', hat: '#3a3e4a', hood: '#555a68', lens: '#19e3d0', hair: '#141018' }]) },
   },
   syndicate: {
     boss: { name: 'Boss', w: 14, looks: mk([
-      { n: 'Charcoal suit', suit: '#1c1c2e', tie: '#ff2d95', hair: '#141018' }, { n: 'Navy suit', suit: '#1f2a52', tie: '#ffd24a', hair: '#2a1a12' },
-      { n: 'Burgundy suit', suit: '#4a1428', tie: '#19e3d0', hair: '#1a1410' }, { n: 'Cream suit', suit: '#d8cfb8', tie: '#8a1f3a', hair: '#8a8a8a' }]) },
+      { n: 'Charcoal suit', hat: '#141420', suit: '#1c1c2e', tie: '#ff2d95', hair: '#141018' }, { n: 'Navy suit', hat: '#161f3e', suit: '#1f2a52', tie: '#ffd24a', hair: '#2a1a12' },
+      { n: 'Burgundy suit', hat: '#34101e', suit: '#4a1428', tie: '#19e3d0', hair: '#1a1410' }, { n: 'Cream suit', hat: '#b8ae96', suit: '#d8cfb8', tie: '#8a1f3a', hair: '#8a8a8a' }]) },
     lookout: { name: 'Lookout', w: 14, looks: mk([
-      { n: 'Pink bandana', band: '#ff2d95', jacket: '#2a5a4a', hair: '#4a3020' }, { n: 'Teal bandana', band: '#19e3d0', jacket: '#4a2a5a', hair: '#2a1a12' },
-      { n: 'Orange bandana', band: '#ff8a3d', jacket: '#2a3a5a', hair: '#1a1410' }, { n: 'White bandana', band: '#e8e8f0', jacket: '#5a2a2a', hair: '#141018' }]) },
+      { n: 'Pink flat cap', band: '#ff2d95', jacket: '#2a5a4a', hair: '#4a3020' }, { n: 'Teal flat cap', band: '#19e3d0', jacket: '#4a2a5a', hair: '#2a1a12' },
+      { n: 'Orange flat cap', band: '#ff8a3d', jacket: '#2a3a5a', hair: '#1a1410' }, { n: 'White flat cap', band: '#e8e8f0', jacket: '#5a2a2a', hair: '#141018' }]) },
     muscle: { name: 'Muscle', w: 14, looks: mk([
-      { n: 'White tank', tank: '#e8e8f0', hair: '#4a3020' }, { n: 'Black tank', tank: '#26242e', hair: '#2a1a12' },
-      { n: 'Red tank', tank: '#a8263a', hair: '#1a1410' }, { n: 'Teal tank', tank: '#19a89a', hair: '#141018' }]) },
+      { n: 'White shirt', suit: '#1a1a22', tank: '#e8e8f0', hair: '#4a3020' }, { n: 'Mustard shirt', suit: '#2a2a38', tank: '#c9a02a', hair: '#2a1a12' },
+      { n: 'Red shirt', suit: '#1f2a52', tank: '#a8263a', hair: '#1a1410' }, { n: 'Teal shirt', suit: '#4a1428', tank: '#19a89a', hair: '#141018' }]) },
     accountant: { name: 'Accountant', w: 14, looks: mk([
       { n: 'Grey vest', shirt: '#f1e8d4', vest: '#6a6a7a', tie: '#19e3d0', hair: '#8a8a8a' }, { n: 'Brown vest', shirt: '#f1e8d4', vest: '#6a4a38', tie: '#ff2d95', hair: '#4a3020' },
       { n: 'Navy vest', shirt: '#dfe8f4', vest: '#26356a', tie: '#ffd24a', hair: '#2a1a12' }, { n: 'Green vest', shirt: '#f1e8d4', vest: '#2f6a50', tie: '#a8263a', hair: '#1a1410' }]) },
@@ -226,6 +226,7 @@ function torso(c, cloth, o) {
   c.poly(pts, (x, y) => mix(lt(base, 0.1), dk(base, 0.62), clamp((x - 10) / 34 + (y - 36) / 30, 0, 1)));
   c.soft(24, 37, 7, 3, [0, 0, 0], 0.22); c.soft(8, 44, 4, 6, [0, 0, 0], 0.12); c.soft(40, 44, 4, 6, [0, 0, 0], 0.14);
   for (const f of [[12, 40, 15, 48], [35, 40, 33, 48], [19, 44, 17, 48]]) c.line(f[0], f[1], f[2], f[3], 0.35, [0, 0, 0], 0.16);
+  if (o.pin) pinstripes(c, pts, base);
 }
 function hairShape(c, pts, col, o) {
   o = o || {}; const base = hx(col), p = spline(pts, true);
@@ -235,94 +236,104 @@ function hairShape(c, pts, col, o) {
 function fabricEdge(c, pts, w, col, a) { c.curve(pts, w, col, a); }
 
 // ---- the eight crooks, then the Kingpin ----
+// ---- gangster gear: hats, collars, pinstripes ----
+function pinstripes(c, pts, base) {
+  const lum = base[0] * 0.3 + base[1] * 0.59 + base[2] * 0.11, col = lum > 150 ? dk(base, 0.7) : lt(base, 0.3), ip = inPoly(pts);
+  c.paint(bbox(pts), ip, (x, y) => (Math.abs(((x * 1.5) % 1) - 0.5) < 0.06 ? [col[0], col[1], col[2], 0.4] : null));
+}
+function fedora(c, col, band) {
+  const b = hx(col);
+  c.poly([[13.8, 13], [14.6, 6.8], [19, 4], [29, 4], [33.4, 6.8], [34.2, 13]], (x, y) => mix(lt(b, 0.14), dk(b, 0.62), clamp((x - 14) / 20 + (y - 4) / 12, 0, 1)), 1, true);
+  c.curve([[22, 4.6], [24, 7], [26, 4.6]], 0.5, dk(b, 0.4), 0.7);
+  c.poly([[13.8, 10.6], [34.2, 10.6], [34.4, 12.8], [13.6, 12.8]], hx(band), 1, false);
+  c.poly([[5.5, 14.4], [14, 12.6], [34, 12.6], [42.5, 14.4], [39.5, 16.8], [24, 17.6], [8.5, 16.8]], (x, y) => mix(lt(b, 0.06), dk(b, 0.6), clamp((x - 6) / 36, 0, 1)), 1, true);
+  c.soft(24, 18, 11, 2, [0, 0, 0], 0.35);
+}
+function newsboy(c, col, peak) {
+  const b = hx(col);
+  c.poly([[13.2, 14.6], [13.6, 9.8], [17.6, 6.8], [25, 6], [32.6, 7.2], [35.2, 10.6], [34.8, 14.6]], (x, y) => mix(lt(b, 0.14), dk(b, 0.62), clamp((x - 13) / 22 + (y - 6) / 14, 0, 1)), 1, true);
+  c.line(24, 6.2, 24, 14.2, 0.25, [0, 0, 0], 0.18); c.line(19, 7, 17.4, 14, 0.2, [0, 0, 0], 0.14); c.line(30, 7, 32, 14, 0.2, [0, 0, 0], 0.14); c.ell(24, 6.2, 0.9, 0.55, dk(b, 0.6));
+  c.poly([[13.4, 14.4], [34.6, 14.4], [36, 16.8], [24, 18.2], [12, 16.8]], hx(peak), 1, true); c.soft(24, 18.2, 10, 1.8, [0, 0, 0], 0.32);
+}
+function bowler(c, col) {
+  const b = hx(col);
+  c.poly([[14.4, 13.8], [14.4, 8.4], [18, 4.8], [24, 3.8], [30, 4.8], [33.6, 8.4], [33.6, 13.8]], (x, y) => mix(lt(b, 0.16), dk(b, 0.6), clamp((x - 14) / 20 + (y - 4) / 14, 0, 1)), 1, true);
+  c.soft(20, 7, 4, 2, [255, 255, 255], 0.22);
+  c.poly([[14.2, 11.4], [33.8, 11.4], [34, 13.4], [14, 13.4]], '#141018');
+  c.poly([[10.6, 14], [37.4, 14], [38.4, 15.6], [24, 16.6], [9.6, 15.6]], dk(b, 0.7), 1, true); c.soft(24, 16.8, 10, 1.6, [0, 0, 0], 0.3);
+}
+function bandanaMask(c, col) {
+  const b = hx(col);
+  c.poly([[14.8, 23.4], [24, 24.8], [33.2, 23.4], [32.2, 29.4], [28, 33], [24, 34], [20, 33], [15.8, 29.4]], (x, y) => mix(lt(b, 0.1), dk(b, 0.7), clamp((x - 15) / 18, 0, 1)), 1, true);
+  c.curve([[14.8, 23.4], [24, 24.8], [33.2, 23.4]], 0.4, dk(b, 0.5), 0.7);
+  for (let i = 0; i < 16; i++) c.ell(17 + (i % 8) * 2, 27 + Math.floor(i / 8) * 3 + (i % 2) * 0.6, 0.3, 0.3, [255, 255, 255], 0.5);
+  c.poly([[32.4, 23.4], [37.6, 21.8], [38.6, 25], [34.6, 25.6], [38.4, 29.4], [34, 29.2], [31.6, 26]], b, 1, true);
+}
+function poppedCollar(c, col) { const b = hx(col); c.poly([[12, 37], [18.4, 33.4], [21.2, 41], [15, 45]], dk(b, 0.72), 1, true); c.poly([[36, 37], [29.6, 33.4], [26.8, 41], [33, 45]], dk(b, 0.6), 1, true); }
+
 const DRAW = {
   robber(c, L, o) {
-    torso(c, L.shirt); for (let y = 38.5; y < 48; y += 3.6) c.paint([2, y, 46, y + 1.6], (x, yy) => yy > y && yy < y + 1.6 && inPoly(SH)(x, yy), L.stripe, 0.9);
-    face(c, Object.assign({}, o, { noBrows: true }));
-    const mask = hx(L.mask), knit = (x, y) => mix(mask, hash(Math.floor(x * 5), Math.floor(y * 5)) > 0.5 ? [255, 255, 255] : [0, 0, 0], 0.07 + 0.04 * Math.sin(x * 12));
-    const eyeHole = spline([[16, 17], [20, 15.6], [28, 15.6], [32, 17], [31.6, 21.4], [28, 22.2], [20, 22.2], [16.4, 21.4]], true), mouthHole = spline([[20.4, 27], [27.6, 27], [28.4, 29.8], [24, 31.2], [19.6, 29.8]], true);
-    const inHead = inPoly(HEAD), ih = inPoly(eyeHole), im = inPoly(mouthHole);
-    c.paint([13, 6, 35, 33], (x, y) => (inHead(x, y) || (y > 8 && y < 33 && x > 14 && x < 34 && inPoly(HEAD)(x, y))) && !ih(x, y) && !im(x, y), knit);
-    c.poly([[20, 27], [20, 40], [28, 40], [28, 27]], knit, 0.0);
-    c.soft(24, 20, 9, 7, [0, 0, 0], 0.0); const sk = SKINS[o.skin]; c.poly(eyeHole, (x, y) => mix(hx(sk[0]), hx(sk[1]), 0.3 + (y - 17) * 0.05)); c.poly(mouthHole, hx(sk[0]));
-    const sub = Object.assign({}, o, { noBrows: false }); c.soft(24, 19, 10, 3.4, [0, 0, 0], 0.0);
-    for (const cx of [19.8, 28.2]) { c.ell(cx, 19.4, 2.3, 1.1, '#f1ece4'); c.ell(cx, 19.45, 1.05, 1.05, hx(EYE_COLS[(o.eye || 0) % 4])); c.ell(cx, 19.45, 0.5, 0.5, '#0c0a10'); c.ell(cx - 0.35, 19.05, 0.28, 0.28, '#fff'); c.curve([[cx - 2.5, 19.5], [cx - 1.2, 18.4], [cx + 1.2, 18.3], [cx + 2.5, 19.4]], 0.4, '#17121a'); }
-    c.soft(24, 29.2, 3, 1.6, [0, 0, 0], 0.0); c.curve([[21.4, 28.6], [24, 29.1], [26.6, 28.6]], 0.35, '#7a3a3a');
-    c.soft(24, 16.2, 9, 1.4, [0, 0, 0], 0.2);
+    torso(c, L.shirt, { pin: L.stripe });
+    face(c, o);
+    bandanaMask(c, L.mask); newsboy(c, L.stripe, dk(hx(L.stripe), 0.7).map((v) => Math.round(v)).reduce((s, v) => s + v.toString(16).padStart(2, '0'), '#'));
   },
   driver(c, L, o) {
     torso(c, L.jacket); const jc = hx(L.jacket);
-    c.poly([[17, 35], [24, 44], [31, 35], [28, 34.6], [24, 38], [20, 34.6]], '#ecebf2'); c.poly([[14, 35.5], [20, 34.6], [23, 44], [21, 48], [14, 48]], dk(jc, 0.78)); c.poly([[34, 35.5], [28, 34.6], [25, 44], [27, 48], [34, 48]], dk(jc, 0.7));
-    c.line(24, 44, 24, 48, 0.4, [20, 20, 20], 0.5);
+    c.poly([[17, 35], [24, 44], [31, 35], [28, 34.6], [24, 38], [20, 34.6]], '#ecebf2'); poppedCollar(c, L.jacket); c.line(24, 44, 24, 48, 0.4, [20, 20, 20], 0.5);
     face(c, Object.assign({}, o, { noEyes: true }));
-    const cap = hx(L.cap);
-    c.poly([[13.6, 15.6], [14.8, 9.2], [19, 5.6], [29, 5.6], [33.2, 9.2], [34.4, 15.6]], (x, y) => mix(lt(cap, 0.15), dk(cap, 0.7), clamp((x - 14) / 22 + (y - 6) / 14, 0, 1)), 1, true);
-    c.line(24, 5.8, 24, 14.5, 0.25, [0, 0, 0], 0.2); c.ell(24, 5.8, 0.9, 0.5, dk(cap, 0.6));
-    c.poly([[12.4, 15.2], [35.6, 15.2], [37, 17.4], [24, 19.4], [11, 17.4]], hx(L.brim), 1, true); c.soft(24, 19.4, 10, 1.8, [0, 0, 0], 0.3);
-    for (const cx of [19.6, 28.4]) { c.poly([[cx - 3.2, 18], [cx + 3.2, 18], [cx + 2.8, 21.4], [cx, 22.4], [cx - 2.8, 21.4]], (x, y) => mix([22, 20, 30], [58, 56, 74], clamp((y - 18) / 4.4 + (cx - x) * 0.02, 0, 1)), 1, true); c.line(cx - 2.4, 18.8, cx - 0.6, 18.8, 0.35, [255, 255, 255], 0.5); }
-    c.line(22.8, 18.6, 25.2, 18.6, 0.4, '#c9a02a'); c.curve([[16.4, 18.4], [14, 18.8], [13.8, 19.6]], 0.3, '#c9a02a');
+    newsboy(c, L.cap, L.brim);
+    for (const cx of [19.6, 28.4]) { c.poly([[cx - 3.2, 18.4], [cx + 3.2, 18.4], [cx + 2.8, 21.6], [cx, 22.6], [cx - 2.8, 21.6]], (x, y) => mix([22, 20, 30], [58, 56, 74], clamp((y - 18) / 4.4 + (cx - x) * 0.02, 0, 1)), 1, true); c.line(cx - 2.4, 19.2, cx - 0.6, 19.2, 0.35, [255, 255, 255], 0.5); }
+    c.line(22.8, 19, 25.2, 19, 0.4, '#c9a02a');
   },
   safecracker(c, L, o) {
     torso(c, L.shirt); const sc = hx(L.shirt);
-    c.poly([[16, 35], [22, 34.8], [24, 42], [19, 41]], dk(sc, 0.75), 1, false); c.poly([[32, 35], [26, 34.8], [24, 42], [29, 41]], dk(sc, 0.65), 1, false); c.line(24, 40, 24, 48, 0.3, [0, 0, 0], 0.3);
-    c.rect(9, 41, 6, 5, dk(sc, 0.8), 0.9); c.line(9, 42, 15, 42, 0.3, [0, 0, 0], 0.25);
+    c.poly([[16, 35], [22, 34.8], [24, 42], [19, 41]], dk(sc, 0.75), 1, false); c.poly([[32, 35], [26, 34.8], [24, 42], [29, 41]], dk(sc, 0.65), 1, false);
+    c.line(15.4, 36, 16.4, 48, 1.3, '#2a1c14'); c.line(32.6, 36, 31.6, 48, 1.3, '#2a1c14');
     face(c, Object.assign({}, o, { stubble: true, brow: L.hair }));
-    const bn = hx(L.beanie);
-    c.poly([[13.2, 14], [13.8, 9], [17.5, 5], [24, 3.8], [30.5, 5], [34.2, 9], [34.8, 14]], (x, y) => { const rib = Math.sin(x * 7) * 0.07; return mix(mix(lt(bn, 0.12), dk(bn, 0.7), clamp((x - 14) / 22, 0, 1)), rib > 0 ? [255, 255, 255] : [0, 0, 0], Math.abs(rib)); }, 1, true);
-    c.ell(24, 3.4, 1.8, 1.3, lt(bn, 0.2));
-    c.poly([[12.8, 14.6], [35.2, 14.6], [35, 11.4], [13, 11.4]], (x, y) => mix(dk(bn, 0.85), dk(bn, 0.65), clamp((x - 13) / 22, 0, 1)), 1, false); c.soft(24, 14.8, 10, 1.4, [0, 0, 0], 0.3);
-    c.poly([[13.8, 12.2], [34.2, 12.2], [34.4, 8.2], [13.6, 8.2]], '#3a3a44', 0.0);
-    c.curve([[13.4, 10.2], [24, 8.8], [34.6, 10.2]], 0.7, '#4a4a56'); for (const cx of [19.2, 28.8]) { c.ell(cx, 10, 3.1, 2.3, '#2a2a34'); c.ell(cx, 10, 2.5, 1.7, mix(hx('#9fd8e6'), [255, 255, 255], 0.2), 0.85); c.line(cx - 1.6, 9.2, cx - 0.2, 8.8, 0.35, [255, 255, 255], 0.7); }
+    bowler(c, L.beanie);
+    c.ell(28.2, 19.4, 3.3, 3.3, '#2a2a34'); c.ell(28.2, 19.4, 2.6, 2.6, [190, 225, 235], 0.7); c.line(26.6, 18.2, 28, 17.8, 0.4, [255, 255, 255], 0.8); c.curve([[31.4, 19.4], [34, 17], [34.2, 14]], 0.25, '#2a2a34');
   },
   hacker(c, L, o) {
     torso(c, L.hood); const hd = hx(L.hood);
-    c.line(19, 38, 18, 46, 0.5, '#e8e8f0', 0.9); c.line(29, 38, 30, 46, 0.5, '#e8e8f0', 0.9); c.ell(18, 46.4, 0.55, 0.55, '#e8e8f0'); c.ell(30, 46.4, 0.55, 0.55, '#e8e8f0');
-    c.poly([[8, 38], [9, 20], [12, 9], [19, 3.6], [29, 3.6], [36, 9], [39, 20], [40, 38], [31, 40], [17, 40]], (x, y) => mix(lt(hd, 0.1), dk(hd, 0.6), clamp((x - 9) / 30 + (y - 4) / 40, 0, 1)), 1, true);
-    c.poly([[14.4, 12], [19, 8.4], [29, 8.4], [33.6, 12], [34.4, 24], [30, 31.8], [24, 33], [18, 31.8], [13.6, 24]], dk(hd, 0.34), 1, true);
+    c.poly([[17, 35], [24, 48], [31, 35], [28, 34.6], [24, 38], [20, 34.6]], '#ecebf2'); c.poly([[22.8, 37], [25.2, 37], [25.6, 40], [24, 48], [22.4, 40]], hx(L.lens), 1, true);
+    poppedCollar(c, L.hood);
     face(c, Object.assign({}, o, { noEyes: true }));
-    c.soft(24, 10.5, 12, 3, [0, 0, 0], 0.32); c.soft(14, 22, 2.4, 9, [0, 0, 0], 0.3); c.soft(34, 22, 2.4, 9, [0, 0, 0], 0.3);
+    fedora(c, L.hat, L.lens);
     const lens = hx(L.lens);
-    for (const cx of [19.6, 28.4]) { c.poly([[cx - 3.1, 17.6], [cx + 3.1, 17.6], [cx + 2.6, 21.2], [cx - 2.6, 21.2]], lens, 0.22, true); c.curve([[cx - 3.2, 17.8], [cx, 17.4], [cx + 3.2, 17.8], [cx + 2.7, 21.3], [cx - 2.7, 21.3], [cx - 3.2, 17.8]], 0.4, '#17121a'); c.line(cx - 2.2, 18.5, cx - 0.4, 18.5, 0.4, lens, 0.9); c.ell(cx + 0.2, 19.6, 1, 1, lens, 0.9); }
-    c.line(22.6, 18, 25.4, 18, 0.4, '#17121a'); c.soft(24, 20, 10, 3, lens, 0.12);
+    for (const cx of [19.6, 28.4]) { c.poly([[cx - 3.2, 18.6], [cx + 3.2, 18.6], [cx + 2.8, 21.8], [cx, 22.6], [cx - 2.8, 21.8]], (x, y) => mix(dk(lens, 0.35), lens, clamp((y - 18.6) / 4 + (cx - x) * 0.03, 0, 1)), 0.9, true); c.line(cx - 2.2, 19.4, cx - 0.4, 19.4, 0.35, [255, 255, 255], 0.55); }
+    c.line(22.8, 19.2, 25.2, 19.2, 0.4, '#17121a');
   },
   boss(c, L, o) {
-    torso(c, L.suit); const su = hx(L.suit);
+    torso(c, L.suit, { pin: 1 }); const su = hx(L.suit);
     c.poly([[17, 35], [24, 48], [31, 35], [28, 34.6], [24, 38], [20, 34.6]], '#f3eee4', 1); c.poly([[22.4, 37], [25.6, 37], [26.4, 40], [24, 48], [21.6, 40]], hx(L.tie), 1, true); c.poly([[22.2, 36.4], [25.8, 36.4], [25.2, 38.4], [22.8, 38.4]], dk(hx(L.tie), 0.7));
-    c.poly([[13, 36.5], [20, 34.6], [23.4, 46], [18.6, 48], [12, 48]], dk(su, 0.72), 1, false); c.poly([[35, 36.5], [28, 34.6], [24.6, 46], [29.4, 48], [36, 48]], dk(su, 0.62), 1, false);
-    c.rect(33, 41, 4, 1.4, '#f3eee4', 0.9);
+    c.poly([[12, 36.5], [20, 34.6], [23.4, 46], [18.6, 48], [11, 48]], dk(su, 0.72), 1, false); c.poly([[36, 36.5], [28, 34.6], [24.6, 46], [29.4, 48], [37, 48]], dk(su, 0.62), 1, false);
+    c.poly([[32, 41], [36, 40.4], [36.2, 42.4], [32.2, 42.8]], '#f3eee4'); c.poly([[33, 40.6], [34, 39.4], [35, 40.6]], hx(L.tie));
     face(c, Object.assign({}, o, { brow: L.hair }));
-    const hr = L.hair;
-    hairShape(c, [[14, 17], [14.6, 11], [18, 7.2], [24, 6], [30, 7.2], [33.4, 11], [34, 17], [32, 13.6], [27, 11.6], [19, 11.4], [16, 13.6]], hr, { sx: 20, sy: 8.4, glint: 0.28 });
-    c.poly([[20.6, 27.2], [22.8, 26.4], [24, 26.8], [25.2, 26.4], [27.4, 27.2], [26, 28.2], [24, 27.8], [22, 28.2]], hx(hr), 1, true);
+    fedora(c, L.hat, L.tie);
+    c.poly([[20.6, 27.2], [22.8, 26.4], [24, 26.8], [25.2, 26.4], [27.4, 27.2], [26, 28.2], [24, 27.8], [22, 28.2]], hx(L.hair), 1, true);
   },
   lookout(c, L, o) {
-    torso(c, L.jacket); const jc = hx(L.jacket);
-    c.poly([[13, 36], [18, 34.8], [20, 42], [15, 48], [11, 48]], dk(jc, 0.72)); c.poly([[35, 36], [30, 34.8], [28, 42], [33, 48], [37, 48]], dk(jc, 0.62)); c.rect(23.4, 38, 1.2, 10, [20, 20, 20], 0.45);
+    torso(c, L.jacket); poppedCollar(c, L.jacket); c.rect(23.4, 38, 1.2, 10, [20, 20, 20], 0.45);
     face(c, Object.assign({}, o, { side: true, brow: L.hair }));
-    const bd = hx(L.band);
-    c.poly([[13.4, 15.2], [14, 9.4], [18, 5.8], [24, 5], [30, 5.8], [34, 9.4], [34.6, 15.2], [24, 12.4]], (x, y) => mix(lt(bd, 0.12), dk(bd, 0.72), clamp((x - 14) / 22, 0, 1)), 1, true);
-    c.curve([[13.6, 14.6], [24, 12], [34.4, 14.6]], 0.6, dk(bd, 0.6), 0.5);
-    for (let i = 0; i < 14; i++) c.ell(15 + (i % 7) * 3, 8.6 + Math.floor(i / 7) * 2.6 + (i % 2) * 0.6, 0.35, 0.35, '#ffffff', 0.55);
-    c.poly([[33.6, 10.6], [41.4, 8], [42.4, 11.2], [38.4, 12.4], [43, 15.6], [39, 17], [35.2, 14.4]], bd, 1, true); c.line(34.4, 12.4, 41, 10.6, 0.3, [0, 0, 0], 0.2);
-    c.soft(24, 15.4, 10, 1.2, [0, 0, 0], 0.22);
+    newsboy(c, L.band, dk(hx(L.band), 0.75).map((v) => Math.round(v)).reduce((s, v) => s + v.toString(16).padStart(2, '0'), '#'));
   },
   muscle(c, L, o) {
-    const MS = spline([[0, 48], [0.6, 41.5], [6, 37], [15, 35], [33, 35], [42, 37], [47.4, 41.5], [48, 48]], true), sk = SKINS[o.skin], sc = (x, y) => mix(hx(sk[0]), hx(sk[1]), clamp(0.4 + (x - 24) * 0.04, 0, 1));
-    c.poly(MS, sc); c.soft(8, 41, 5, 5, [255, 255, 255], 0.1); c.soft(40, 42, 5, 6, [0, 0, 0], 0.2);
-    c.poly([[8, 48], [9.6, 38.6], [15.4, 35.6], [19, 36.4], [21, 42], [18, 48]], hx(L.tank), 1, true); c.poly([[40, 48], [38.4, 38.6], [32.6, 35.6], [29, 36.4], [27, 42], [30, 48]], dk(hx(L.tank), 0.75), 1, true);
-    c.poly([[19, 36.4], [24, 40.6], [29, 36.4], [30, 48], [18, 48]], dk(hx(L.tank), 0.88), 1, false);
-    c.soft(24, 38, 8, 3, [0, 0, 0], 0.2);
+    torso(c, L.suit, { pin: 1 }); const su = hx(L.suit);
+    c.poly([[19, 35], [24, 44], [29, 35], [27, 34.6], [24, 38], [21, 34.6]], hx(L.tank)); c.poly([[12, 36.5], [20, 34.6], [23.4, 46], [18.6, 48], [11, 48]], dk(su, 0.72), 1, false); c.poly([[36, 36.5], [28, 34.6], [24.6, 46], [29.4, 48], [37, 48]], dk(su, 0.62), 1, false);
+    c.curve([[19.6, 35.6], [20.4, 40], [24, 42.4], [27.6, 40], [28.4, 35.6]], 0.8, '#e8b82e'); c.ell(24, 43, 1.2, 1.4, '#e8b82e');
     face(c, Object.assign({}, o, { wide: true, frown: true, tilt: 0.55, stubble: true, brow: L.hair }));
-    c.soft(20, 10.4, 5.6, 2.8, [255, 255, 255], 0.2); c.soft(18, 14, 3, 2, [255, 255, 255], 0.08);
+    c.soft(20, 10.4, 5.6, 2.8, [255, 255, 255], 0.2);
     c.curve([[30.2, 14.6], [31, 17.6], [30.4, 21]], 0.36, '#8a4a4a', 0.9); c.line(29.2, 17, 32.2, 18.2, 0.2, '#d8b8b0', 0.8);
   },
   accountant(c, L, o) {
     torso(c, L.shirt); const vs = hx(L.vest);
     c.poly([[10, 48], [11.4, 40], [18, 36], [20, 48]], vs, 1, true); c.poly([[38, 48], [36.6, 40], [30, 36], [28, 48]], dk(vs, 0.85), 1, true);
+    pinstripes(c, SH, vs);
     c.poly([[22.4, 36.8], [25.6, 36.8], [26.2, 40], [24, 48], [21.8, 40]], hx(L.tie), 1, true); c.poly([[22.2, 36.2], [25.8, 36.2], [25.2, 38.2], [22.8, 38.2]], dk(hx(L.tie), 0.7));
-    c.line(14.4, 42, 14.4, 44.6, 0.7, '#d8d8e0'); c.line(14.4, 41.4, 14.4, 42, 0.5, '#ff2d95');
+    c.curve([[14.4, 41.4], [18, 44], [22.6, 44.4]], 0.3, '#e8b82e'); c.ell(14.4, 41.2, 0.7, 0.7, '#e8b82e');
     face(c, Object.assign({}, o, { noBrows: false, brow: L.hair }));
     hairShape(c, [[14.2, 15], [14.8, 10.6], [18.6, 7.4], [24, 6.8], [30, 8], [33.4, 11], [33.8, 14.6], [31, 11.8], [25, 10.4], [18.8, 11.4], [16, 13.6]], L.hair, { sx: 22, sy: 8.4, glint: 0.2 });
+    c.poly([[20.8, 27.4], [27.2, 27.4], [27, 28], [20.9, 28]], hx(L.hair), 1, false);
     for (const cx of [19.8, 28.2]) { c.ell(cx, 19.4, 3.1, 2.7, [255, 255, 255], 0.1); c.curve([[cx - 3.1, 19.4], [cx - 2, 16.9], [cx + 2, 16.9], [cx + 3.1, 19.4], [cx + 2, 22], [cx - 2, 22], [cx - 3.1, 19.4]], 0.38, '#1a1620'); c.line(cx - 1.8, 17.6, cx - 0.4, 17.4, 0.3, [255, 255, 255], 0.6); }
     c.line(22.9, 19, 25.1, 19, 0.35, '#1a1620'); c.line(16.7, 19.2, 14, 18.6, 0.3, '#1a1620'); c.line(31.3, 19.2, 34, 18.6, 0.3, '#1a1620');
   },
@@ -346,7 +357,7 @@ function kingpin(c) {
 function accessory(c, acc, col) {
   if (acc === 'plaster') { c.poly([[26.6, 22.6], [32, 20.6], [33.2, 23], [27.8, 25.2]], '#ecc89c', 1, true); c.soft(30, 23, 3, 1.4, [0, 0, 0], 0.14); c.poly([[29, 21.4], [30.6, 21], [31.2, 24], [29.6, 24.4]], '#f6dcb8', 0.9); c.ell(29.8, 22.7, 0.25, 0.25, '#c89a68'); c.ell(30.4, 23.1, 0.25, 0.25, '#c89a68'); }
   else if (acc === 'earring') { const cc = typeof col === 'string' ? col : '#ffd24a'; c.curve([[13.8, 24.2], [12.2, 25.4], [12.6, 27.4], [14, 27.8], [14.8, 26.6]], 0.5, cc); c.soft(13.6, 25.6, 1.6, 1.4, [255, 255, 255], 0.0); c.line(12.6, 25.4, 12.8, 26.6, 0.2, [255, 255, 255], 0.6); }
-  else if (acc === 'cig') { c.poly([[24.6, 28.3], [35, 27.6], [35.2, 28.8], [24.8, 29.5]], '#f4f1ea'); c.poly([[34.4, 27.6], [36, 27.5], [36.2, 28.7], [34.6, 28.8]], '#ff6a2a'); c.ell(36.2, 28.1, 0.6, 0.7, '#ffd24a', 0.9); c.soft(38.6, 24, 1.4, 3.6, [220, 224, 235], 0.32); c.soft(40.2, 18.6, 1.8, 3.6, [220, 224, 235], 0.22); }
+  else if (acc === 'cig') { c.poly([[24.6, 28.2], [36.6, 27.2], [36.8, 29.4], [24.8, 30]], (x, y) => mix([120, 78, 40], [78, 48, 24], clamp((x - 24) / 12, 0, 1))); c.poly([[27, 28.1], [28.2, 28], [28.4, 29.6], [27.2, 29.7]], '#d8b25a'); c.poly([[36.2, 27.2], [37.4, 27.1], [37.6, 29.3], [36.4, 29.4]], '#9a9aa4'); c.ell(37.6, 28.2, 0.7, 1, '#ff6a2a', 0.9); c.soft(40, 23.6, 1.8, 4, [220, 224, 235], 0.34); c.soft(42, 17.6, 2.2, 4, [220, 224, 235], 0.22); }
 }
 
 function bgFor(c, team, bgIdx) {
