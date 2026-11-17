@@ -162,7 +162,7 @@ function saveBears(c, d) { const f = bearsFile(c); fs.writeFileSync(f + '.tmp', 
 const holdFor = (d, token) => { for (const k of Object.keys(d.holds)) if (d.holds[k].token === token) return { slot: k === 'F' ? 'F' : Number(k), hold: d.holds[k] }; return null; };
 const bearLabel = (slot) => (slot === 'F' ? 'founder' : slot + 1); // what the pages are told
 const FAVICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0c0a18"/><polygon points="32,8 38,26 57,26 42,38 48,56 32,45 16,56 22,38 7,26 26,26" fill="#ff2d95"/></svg>';
-const PRIME = { name: 'Wanted', role: 'FLAGSHIP', blurb: 'The one-of-one flagship. The Kingpin: silver hair, gold glasses, a cream suit and a cigar. Reserved for Wanted’s founder wallet.', ability: art.ABILITIES.FLAGSHIP };
+const PRIME = { name: 'Wanted', role: 'FLAGSHIP', blurb: 'The one-of-one flagship. The Kingpin: slicked black hair with a silver streak, a pinstripe suit and a cigar. Reserved for Wanted’s founder wallet.', ability: art.ABILITIES.FLAGSHIP };
 const shortAddr = (a) => a.slice(0, 4) + '…' + a.slice(-4);
 
 // BTC / SOL spot prices for the header ticker (cached 30s, tries several free sources)
