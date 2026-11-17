@@ -113,157 +113,265 @@ function agentFor(slot, secret) {
   return { name: t.name, role: t.role, team: t.team === 'crew' ? 'CREW' : 'SYNDICATE', blurb: ROLES[t.role].blurb, ability: ABILITIES[t.role], chassis: sp.looks[t.look].n, breed: sp.name, accessory: t.acc === 'none' ? null : t.acc };
 }
 
-// ---- a tiny rasterizer: 48 x 48 pixels, no anti-aliasing, so every edge stays crisp ----
-const rgbOf = (hex) => { const n = parseInt(hex.slice(1, 7), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+// ---- a small vector painter: smooth shapes, soft shadows and gradients, 4 samples per pixel for clean edges ----
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const hx = (h) => { const n = parseInt(h.slice(1, 7), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+const dk = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
+const lt = (c, k) => mix(c, [255, 255, 255], k);
+const hash = (x, y) => { let h = Math.imul(x * 374761393 + y * 668265263, 1274126177); h = Math.imul(h ^ (h >>> 13), 1103515245); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+function spline(pts, closed) {
+  const out = [], n = pts.length, seg = 6;
+  const g = (i) => pts[closed ? (i + n) % n : clamp(i, 0, n - 1)];
+  for (let i = 0; i < (closed ? n : n - 1); i++) {
+    const p0 = g(i - 1), p1 = g(i), p2 = g(i + 1), p3 = g(i + 2);
+    for (let k = 0; k < seg; k++) {
+      const t = k / seg, t2 = t * t, t3 = t2 * t;
+      out.push([0.5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
+        0.5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3)]);
+    }
+  }
+  if (!closed) out.push(pts[n - 1]);
+  return out;
+}
+const inPoly = (pts) => (px, py) => {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1];
+    if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+};
+const bbox = (pts) => { let a = 1e9, b = 1e9, c = -1e9, d = -1e9; for (const p of pts) { if (p[0] < a) a = p[0]; if (p[1] < b) b = p[1]; if (p[0] > c) c = p[0]; if (p[1] > d) d = p[1]; } return [a, b, c, d]; };
+
 class Canvas {
-  constructor(bg) { this.px = Buffer.alloc(N * N * 3); const c = rgbOf(bg); for (let i = 0; i < N * N; i++) { this.px[i * 3] = c[0]; this.px[i * 3 + 1] = c[1]; this.px[i * 3 + 2] = c[2]; } }
-  put(x, y, c, a) {
-    if (x < 0 || y < 0 || x >= N || y >= N) return;
-    const i = (y * N + x) * 3;
-    if (a == null || a >= 1) { this.px[i] = c[0]; this.px[i + 1] = c[1]; this.px[i + 2] = c[2]; return; }
-    for (let k = 0; k < 3; k++) this.px[i + k] = Math.round(this.px[i + k] * (1 - a) + c[k] * a);
+  constructor(bg, R) { this.R = R || 384; this.K = this.R / N; const b = hx(bg); this.px = new Float32Array(this.R * this.R * 3); for (let i = 0; i < this.R * this.R; i++) { this.px[i * 3] = b[0]; this.px[i * 3 + 1] = b[1]; this.px[i * 3 + 2] = b[2]; } }
+  // col is a hex string, an [r,g,b] array, or a function (x, y) returning [r,g,b] or [r,g,b,alpha] (null skips the point)
+  paint(bb, test, col, a) {
+    const K = this.K, R = this.R, fixed = typeof col === 'string' ? hx(col) : Array.isArray(col) ? col : null, A = a == null ? 1 : a;
+    const x0 = Math.max(0, Math.floor(bb[0] * K) - 1), y0 = Math.max(0, Math.floor(bb[1] * K) - 1), x1 = Math.min(R - 1, Math.ceil(bb[2] * K) + 1), y1 = Math.min(R - 1, Math.ceil(bb[3] * K) + 1);
+    for (let py = y0; py <= y1; py++) for (let px = x0; px <= x1; px++) {
+      let cov = 0;
+      cov += test((px + 0.25) / K, (py + 0.25) / K) ? 1 : 0; cov += test((px + 0.75) / K, (py + 0.25) / K) ? 1 : 0; cov += test((px + 0.25) / K, (py + 0.75) / K) ? 1 : 0; cov += test((px + 0.75) / K, (py + 0.75) / K) ? 1 : 0;
+      if (!cov) continue;
+      let c = fixed, al = A * cov / 4;
+      if (!c) { c = col((px + 0.5) / K, (py + 0.5) / K); if (!c) continue; if (c.length > 3) al *= c[3]; }
+      const i = (py * R + px) * 3;
+      this.px[i] += (c[0] - this.px[i]) * al; this.px[i + 1] += (c[1] - this.px[i + 1]) * al; this.px[i + 2] += (c[2] - this.px[i + 2]) * al;
+    }
   }
-  fill(test, col, a) { if (a == null && col.length === 9) a = parseInt(col.slice(7, 9), 16) / 255; const c = rgbOf(col); for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (test(x + 0.5, y + 0.5)) this.put(x, y, c, a); }
-  rect(x, y, w, h, col, a) { this.fill((px, py) => px >= x && px < x + w && py >= y && py < y + h, col, a); }
-  circle(cx, cy, r, col, a) { this.fill((px, py) => (px - cx) * (px - cx) + (py - cy) * (py - cy) <= r * r, col, a); }
-  poly(pts, col, a) {
-    this.fill((px, py) => {
-      let inside = false;
-      for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
-        const [xi, yi] = pts[i], [xj, yj] = pts[j];
-        if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside;
+  rect(x, y, w, h, col, a) { this.paint([x, y, x + w, y + h], (px, py) => px >= x && px < x + w && py >= y && py < y + h, col, a); }
+  ell(cx, cy, rx, ry, col, a) { this.paint([cx - rx, cy - ry, cx + rx, cy + ry], (px, py) => ((px - cx) / rx) * ((px - cx) / rx) + ((py - cy) / ry) * ((py - cy) / ry) <= 1, col, a); }
+  poly(pts, col, a, smooth) { const p = smooth ? spline(pts, true) : pts; this.paint(bbox(p), inPoly(p), col, a); }
+  line(x1, y1, x2, y2, w, col, a) {
+    const dx = x2 - x1, dy = y2 - y1, l2 = dx * dx + dy * dy, h = w / 2;
+    this.paint([Math.min(x1, x2) - h, Math.min(y1, y2) - h, Math.max(x1, x2) + h, Math.max(y1, y2) + h], (px, py) => { let t = l2 ? ((px - x1) * dx + (py - y1) * dy) / l2 : 0; t = clamp(t, 0, 1); const qx = x1 + t * dx - px, qy = y1 + t * dy - py; return qx * qx + qy * qy <= h * h; }, col, a);
+  }
+  curve(pts, w, col, a) { const p = spline(pts, false); for (let i = 0; i < p.length - 1; i++) this.line(p[i][0], p[i][1], p[i + 1][0], p[i + 1][1], w, col, a); }
+  // a soft shadow or highlight that fades to nothing at its edge
+  soft(cx, cy, rx, ry, col, a) {
+    const c = typeof col === 'string' ? hx(col) : col;
+    this.paint([cx - rx, cy - ry, cx + rx, cy + ry], (px, py) => ((px - cx) / rx) * ((px - cx) / rx) + ((py - cy) / ry) * ((py - cy) / ry) < 1, (x, y) => { const d = Math.sqrt(((x - cx) / rx) * ((x - cx) / rx) + ((y - cy) / ry) * ((y - cy) / ry)); return [c[0], c[1], c[2], Math.pow(Math.max(0, 1 - d), 1.4)]; }, null === a ? 1 : a);
+  }
+  toRgb(size) {
+    const R = this.R, out = Buffer.alloc(size * size * 3), s = R / size;
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const fx = Math.min(R - 1.001, (x + 0.5) * s - 0.5), fy = Math.min(R - 1.001, (y + 0.5) * s - 0.5), x0 = Math.max(0, Math.floor(fx)), y0 = Math.max(0, Math.floor(fy)), tx = fx - x0, ty = fy - y0;
+      for (let ch = 0; ch < 3; ch++) {
+        const a = this.px[(y0 * R + x0) * 3 + ch], b = this.px[(y0 * R + x0 + 1) * 3 + ch], c2 = this.px[((y0 + 1) * R + x0) * 3 + ch], d = this.px[((y0 + 1) * R + x0 + 1) * 3 + ch];
+        out[(y * size + x) * 3 + ch] = clamp(Math.round((a * (1 - tx) + b * tx) * (1 - ty) + (c2 * (1 - tx) + d * tx) * ty), 0, 255);
       }
-      return inside;
-    }, col, a);
+    }
+    return out;
   }
 }
 
-// ---- the parts every crook shares: body, neck, head, ears, nose, eyes and mouth ----
-const HEAD = [[15, 9], [33, 9], [35, 14], [35, 24], [31, 31], [17, 31], [13, 24], [13, 14]];
-function body(c, cloth, shade, wide) {
-  const x0 = wide ? 0 : 4, x1 = wide ? 48 : 44;
-  c.poly([[x0, 48], [x0 + 2, 39], [14, 35], [34, 35], [x1 - 2, 39], [x1, 48]], cloth);
-  c.rect(x0 + 2, 44, x1 - x0 - 4, 4, shade);
+// ---- a face: neck, ears, head, soft shading, eyes, brows, nose and mouth, lit from the top left ----
+const HEAD = spline([[24, 8.2], [30.4, 10], [33.6, 15], [33.9, 21.5], [32, 27.4], [28, 31.4], [24, 32.4], [20, 31.4], [16, 27.4], [14.1, 21.5], [14.4, 15], [17.6, 10]], true);
+const EYE_COLS = ['#3f6e9e', '#5a3a22', '#4a7a52', '#6a4a2a'];
+function face(c, o) {
+  const sk = [hx(SKINS[o.skin][0]), hx(SKINS[o.skin][1])], skc = (x, y) => mix(sk[0], sk[1], Math.pow(clamp(0.45 + (x - 24) * 0.055 + (y - 20) * 0.012, 0, 1), 1.2));
+  const neckW = o.wide ? 4.4 : 3.6;
+  c.poly([[24 - neckW, 27], [24 + neckW, 27], [24 + neckW + 0.8, 40], [24 - neckW - 0.8, 40]], (x, y) => mix(skc(x, y), dk(sk[1], 0.6), clamp(1 - (y - 28) / 7, 0, 1) * 0.9));
+  c.ell(14.2, 21.6, 1.5, 2.7, (x, y) => skc(x, y)); c.ell(33.8, 21.6, 1.5, 2.7, (x, y) => skc(x, y));
+  c.ell(14.6, 21.8, 0.7, 1.5, dk(sk[1], 0.8), 0.7); c.ell(33.4, 21.8, 0.7, 1.5, dk(sk[1], 0.8), 0.7);
+  c.poly(HEAD, skc);
+  c.soft(19, 25.6, 3.4, 2.4, [225, 110, 100], 0.16); c.soft(29, 25.6, 3.4, 2.4, [225, 110, 100], 0.14);
+  c.soft(30.5, 28, 5, 4, dk(sk[1], 0.6), 0.22); c.soft(22, 12.5, 6, 2.6, [255, 255, 255], 0.1); c.soft(20.6, 23, 2.6, 1.6, [255, 255, 255], 0.08);
+  const ey = 19.4, eyeCol = hx(EYE_COLS[(o.eye || 0) % 4]), look = o.side ? 0.7 : 0;
+  if (!o.noEyes) for (const cx of [19.8, 28.2]) {
+    c.soft(cx, ey, 3.6, 2.4, dk(sk[1], 0.55), 0.24);
+    c.ell(cx, ey, 2.3, 1.1, '#f1ece4'); c.ell(cx + look, ey + 0.05, 1.05, 1.05, eyeCol); c.ell(cx + look, ey + 0.05, 0.5, 0.5, '#0c0a10'); c.ell(cx + look - 0.35, ey - 0.35, 0.28, 0.28, '#ffffff');
+    c.soft(cx, ey - 0.6, 2.4, 0.9, [0, 0, 0], 0.18);
+    c.curve([[cx - 2.5, ey + 0.15], [cx - 1.2, ey - 0.95], [cx + 1.2, ey - 1.05], [cx + 2.5, ey + 0.1]], 0.38, '#17121a'); c.curve([[cx - 2, ey + 0.8], [cx, ey + 1.2], [cx + 2, ey + 0.8]], 0.16, dk(sk[1], 0.7), 0.5);
+    c.curve([[cx - 2.3, ey - 1.7], [cx, ey - 2.2], [cx + 2.3, ey - 1.6]], 0.18, dk(sk[1], 0.7), 0.45);
+  }
+  if (!o.noBrows) {
+    const bc = hx(o.brow || '#3a2a1e'), tl = o.tilt || 0;
+    c.poly([[17.1, 17.2 - tl], [19.4, 15.7], [22.4, 16.1 + tl], [22.4, 17 + tl], [19.5, 16.5], [17.2, 18]], bc, 0.92, true);
+    c.poly([[30.9, 17.2 - tl], [28.6, 15.7], [25.6, 16.1 + tl], [25.6, 17 + tl], [28.5, 16.5], [30.8, 18]], bc, 0.92, true);
+  }
+  c.soft(25.7, 22, 0.9, 3, dk(sk[1], 0.55), 0.2); c.soft(24, 24.2, 1.4, 0.8, [255, 255, 255], 0.14); c.soft(24, 25.7, 2.4, 0.9, dk(sk[1], 0.5), 0.22);
+  c.ell(22.8, 25.2, 0.55, 0.34, dk(sk[1], 0.45), 0.7); c.ell(25.2, 25.2, 0.55, 0.34, dk(sk[1], 0.45), 0.7);
+  const lip = mix(hx('#b2615c'), sk[1], 0.35), fr = o.frown ? 0.5 : -0.1, y0 = 28.4;
+  c.poly([[21, y0 + fr], [22.8, y0 - 0.8], [24, y0 - 0.45], [25.2, y0 - 0.8], [27, y0 + fr], [24, y0 + 0.25]], dk(lip, 0.85), 1, true);
+  c.poly([[21.2, y0 + fr + 0.1], [24, y0 + 0.3], [26.8, y0 + fr + 0.1], [26, y0 + 1.5], [24, y0 + 1.9], [22, y0 + 1.5]], lip, 1, true);
+  c.curve([[21, y0 + fr], [24, y0 + 0.35], [27, y0 + fr]], 0.3, '#3a1a1a'); c.soft(24, 31.3, 3, 0.9, dk(sk[1], 0.55), 0.18);
+  if (o.stubble) c.paint([14, 24, 34, 32.5], (x, y) => inPoly(HEAD)(x, y) && y > 24.2 && !(x > 20.5 && x < 27.5 && y > 27.4 && y < 30.6), (x, y) => (hash(Math.floor(x * 16), Math.floor(y * 16)) < 0.5 ? [...hx(o.brow || '#3a2a1e'), 0.34] : null), 1);
 }
-function neck(c, sk, wide) { c.rect(wide ? 18 : 20, 29, wide ? 12 : 8, 8, sk[1]); c.rect(wide ? 18 : 20, 29, wide ? 12 : 8, 2, sk[1]); }
-function head(c, sk, o) {
-  o = o || {};
-  c.poly(HEAD, sk[0]);
-  c.rect(12, 17, 2, 6, sk[1]); c.rect(34, 17, 2, 6, sk[1]);   // ears
-  c.rect(17, 30, 14, 1, sk[1]);                                 // jaw shade
-  c.rect(23, 21, 2, 4, sk[1]);                                  // nose
-  if (!o.noEyes) eyes(c, o.shade, o.look);
-  c.rect(20, 27, 8, 1, '#7a3a3a'); c.rect(21, 28, 6, 1, sk[1]); // mouth
+const SH = spline([[1, 48], [2.4, 41.5], [8, 37], [17, 35], [31, 35], [40, 37], [45.6, 41.5], [47, 48]], true);
+function torso(c, cloth, o) {
+  o = o || {}; const base = hx(cloth), pts = o.pts || SH;
+  c.poly(pts, (x, y) => mix(lt(base, 0.1), dk(base, 0.62), clamp((x - 10) / 34 + (y - 36) / 30, 0, 1)));
+  c.soft(24, 37, 7, 3, [0, 0, 0], 0.22); c.soft(8, 44, 4, 6, [0, 0, 0], 0.12); c.soft(40, 44, 4, 6, [0, 0, 0], 0.14);
+  for (const f of [[12, 40, 15, 48], [35, 40, 33, 48], [19, 44, 17, 48]]) c.line(f[0], f[1], f[2], f[3], 0.35, [0, 0, 0], 0.16);
 }
-function eyes(c, shaded, look) {
-  const lx = look === 'side' ? 1 : 0;
-  c.rect(17, 17, 5, 3, '#ffffff'); c.rect(26, 17, 5, 3, '#ffffff');
-  c.rect(19 + lx, 17, 2, 3, INK); c.rect(28 + lx, 17, 2, 3, INK);
-  c.rect(17, 15, 5, 1, shaded || '#3a2a1e'); c.rect(26, 15, 5, 1, shaded || '#3a2a1e');
+function hairShape(c, pts, col, o) {
+  o = o || {}; const base = hx(col), p = spline(pts, true);
+  c.paint(bbox(p), inPoly(p), (x, y) => { const s = Math.sin(x * 9 + y * 2.2) * 0.1 + Math.sin(x * 21 - y) * 0.05 + (hash(Math.floor(x * 12), Math.floor(y * 5)) - 0.5) * 0.1; return mix(base, s > 0 ? [255, 255, 255] : [0, 0, 0], Math.abs(s) * (o.shine || 1)); });
+  c.soft(o.sx || 20, o.sy || 10, 4, 1.4, [255, 255, 255], o.glint == null ? 0.18 : o.glint);
 }
-function hairCut(c, col) { c.poly([[14, 12], [16, 8], [24, 6], [32, 8], [34, 12], [34, 15], [32, 12], [16, 12], [14, 15]], col); }
+function fabricEdge(c, pts, w, col, a) { c.curve(pts, w, col, a); }
 
-// ---- the eight crooks ----
+// ---- the eight crooks, then the Kingpin ----
 const DRAW = {
-  robber(c, L, sk) {
-    body(c, L.shirt, '#00000022', false);
-    for (let y = 38; y < 48; y += 4) c.rect(4, y, 40, 2, L.stripe);
-    neck(c, sk); c.poly([[13, 29], [14, 8], [34, 8], [35, 29], [31, 33], [17, 33]], L.mask);
-    c.rect(15, 15, 18, 7, sk[0]); eyes(c, '#3a2a1e'); c.rect(19, 26, 10, 4, sk[0]); c.rect(20, 27, 8, 1, '#7a3a3a');
-    c.rect(23, 21, 2, 3, sk[1]);
+  robber(c, L, o) {
+    torso(c, L.shirt); for (let y = 38.5; y < 48; y += 3.6) c.paint([2, y, 46, y + 1.6], (x, yy) => yy > y && yy < y + 1.6 && inPoly(SH)(x, yy), L.stripe, 0.9);
+    face(c, Object.assign({}, o, { noBrows: true }));
+    const mask = hx(L.mask), knit = (x, y) => mix(mask, hash(Math.floor(x * 5), Math.floor(y * 5)) > 0.5 ? [255, 255, 255] : [0, 0, 0], 0.07 + 0.04 * Math.sin(x * 12));
+    const eyeHole = spline([[16, 17], [20, 15.6], [28, 15.6], [32, 17], [31.6, 21.4], [28, 22.2], [20, 22.2], [16.4, 21.4]], true), mouthHole = spline([[20.4, 27], [27.6, 27], [28.4, 29.8], [24, 31.2], [19.6, 29.8]], true);
+    const inHead = inPoly(HEAD), ih = inPoly(eyeHole), im = inPoly(mouthHole);
+    c.paint([13, 6, 35, 33], (x, y) => (inHead(x, y) || (y > 8 && y < 33 && x > 14 && x < 34 && inPoly(HEAD)(x, y))) && !ih(x, y) && !im(x, y), knit);
+    c.poly([[20, 27], [20, 40], [28, 40], [28, 27]], knit, 0.0);
+    c.soft(24, 20, 9, 7, [0, 0, 0], 0.0); const sk = SKINS[o.skin]; c.poly(eyeHole, (x, y) => mix(hx(sk[0]), hx(sk[1]), 0.3 + (y - 17) * 0.05)); c.poly(mouthHole, hx(sk[0]));
+    const sub = Object.assign({}, o, { noBrows: false }); c.soft(24, 19, 10, 3.4, [0, 0, 0], 0.0);
+    for (const cx of [19.8, 28.2]) { c.ell(cx, 19.4, 2.3, 1.1, '#f1ece4'); c.ell(cx, 19.45, 1.05, 1.05, hx(EYE_COLS[(o.eye || 0) % 4])); c.ell(cx, 19.45, 0.5, 0.5, '#0c0a10'); c.ell(cx - 0.35, 19.05, 0.28, 0.28, '#fff'); c.curve([[cx - 2.5, 19.5], [cx - 1.2, 18.4], [cx + 1.2, 18.3], [cx + 2.5, 19.4]], 0.4, '#17121a'); }
+    c.soft(24, 29.2, 3, 1.6, [0, 0, 0], 0.0); c.curve([[21.4, 28.6], [24, 29.1], [26.6, 28.6]], 0.35, '#7a3a3a');
+    c.soft(24, 16.2, 9, 1.4, [0, 0, 0], 0.2);
   },
-  driver(c, L, sk) {
-    body(c, L.jacket, '#00000033', false); c.poly([[18, 35], [24, 42], [30, 35]], '#e8e8f0');
-    neck(c, sk); head(c, sk, { noEyes: true, shade: L.hair });
-    c.poly([[13, 15], [15, 6], [33, 6], [35, 15]], L.cap); c.rect(12, 14, 26, 3, L.brim);
-    c.rect(15, 18, 18, 4, INK); c.rect(16, 18, 4, 1, '#ffffff55'); c.rect(27, 18, 4, 1, '#ffffff55'); c.rect(23, 19, 2, 1, INK);
+  driver(c, L, o) {
+    torso(c, L.jacket); const jc = hx(L.jacket);
+    c.poly([[17, 35], [24, 44], [31, 35], [28, 34.6], [24, 38], [20, 34.6]], '#ecebf2'); c.poly([[14, 35.5], [20, 34.6], [23, 44], [21, 48], [14, 48]], dk(jc, 0.78)); c.poly([[34, 35.5], [28, 34.6], [25, 44], [27, 48], [34, 48]], dk(jc, 0.7));
+    c.line(24, 44, 24, 48, 0.4, [20, 20, 20], 0.5);
+    face(c, Object.assign({}, o, { noEyes: true }));
+    const cap = hx(L.cap);
+    c.poly([[13.6, 15.6], [14.8, 9.2], [19, 5.6], [29, 5.6], [33.2, 9.2], [34.4, 15.6]], (x, y) => mix(lt(cap, 0.15), dk(cap, 0.7), clamp((x - 14) / 22 + (y - 6) / 14, 0, 1)), 1, true);
+    c.line(24, 5.8, 24, 14.5, 0.25, [0, 0, 0], 0.2); c.ell(24, 5.8, 0.9, 0.5, dk(cap, 0.6));
+    c.poly([[12.4, 15.2], [35.6, 15.2], [37, 17.4], [24, 19.4], [11, 17.4]], hx(L.brim), 1, true); c.soft(24, 19.4, 10, 1.8, [0, 0, 0], 0.3);
+    for (const cx of [19.6, 28.4]) { c.poly([[cx - 3.2, 18], [cx + 3.2, 18], [cx + 2.8, 21.4], [cx, 22.4], [cx - 2.8, 21.4]], (x, y) => mix([22, 20, 30], [58, 56, 74], clamp((y - 18) / 4.4 + (cx - x) * 0.02, 0, 1)), 1, true); c.line(cx - 2.4, 18.8, cx - 0.6, 18.8, 0.35, [255, 255, 255], 0.5); }
+    c.line(22.8, 18.6, 25.2, 18.6, 0.4, '#c9a02a'); c.curve([[16.4, 18.4], [14, 18.8], [13.8, 19.6]], 0.3, '#c9a02a');
   },
-  safecracker(c, L, sk) {
-    body(c, L.shirt, '#00000033', false); c.rect(19, 35, 10, 4, sk[1]);
-    neck(c, sk); head(c, sk, { shade: L.hair });
-    c.rect(17, 25, 14, 6, L.hair, 0.5);
-    c.poly([[13, 14], [14, 5], [34, 5], [35, 14]], L.beanie); c.rect(22, 2, 4, 4, L.beanie); c.rect(13, 12, 22, 2, '#00000033');
-    c.rect(14, 9, 20, 3, '#cfd6e6'); c.rect(15, 10, 6, 1, '#ffffff'); c.rect(27, 10, 6, 1, '#ffffff');
+  safecracker(c, L, o) {
+    torso(c, L.shirt); const sc = hx(L.shirt);
+    c.poly([[16, 35], [22, 34.8], [24, 42], [19, 41]], dk(sc, 0.75), 1, false); c.poly([[32, 35], [26, 34.8], [24, 42], [29, 41]], dk(sc, 0.65), 1, false); c.line(24, 40, 24, 48, 0.3, [0, 0, 0], 0.3);
+    c.rect(9, 41, 6, 5, dk(sc, 0.8), 0.9); c.line(9, 42, 15, 42, 0.3, [0, 0, 0], 0.25);
+    face(c, Object.assign({}, o, { stubble: true, brow: L.hair }));
+    const bn = hx(L.beanie);
+    c.poly([[13.2, 14], [13.8, 9], [17.5, 5], [24, 3.8], [30.5, 5], [34.2, 9], [34.8, 14]], (x, y) => { const rib = Math.sin(x * 7) * 0.07; return mix(mix(lt(bn, 0.12), dk(bn, 0.7), clamp((x - 14) / 22, 0, 1)), rib > 0 ? [255, 255, 255] : [0, 0, 0], Math.abs(rib)); }, 1, true);
+    c.ell(24, 3.4, 1.8, 1.3, lt(bn, 0.2));
+    c.poly([[12.8, 14.6], [35.2, 14.6], [35, 11.4], [13, 11.4]], (x, y) => mix(dk(bn, 0.85), dk(bn, 0.65), clamp((x - 13) / 22, 0, 1)), 1, false); c.soft(24, 14.8, 10, 1.4, [0, 0, 0], 0.3);
+    c.poly([[13.8, 12.2], [34.2, 12.2], [34.4, 8.2], [13.6, 8.2]], '#3a3a44', 0.0);
+    c.curve([[13.4, 10.2], [24, 8.8], [34.6, 10.2]], 0.7, '#4a4a56'); for (const cx of [19.2, 28.8]) { c.ell(cx, 10, 3.1, 2.3, '#2a2a34'); c.ell(cx, 10, 2.5, 1.7, mix(hx('#9fd8e6'), [255, 255, 255], 0.2), 0.85); c.line(cx - 1.6, 9.2, cx - 0.2, 8.8, 0.35, [255, 255, 255], 0.7); }
   },
-  hacker(c, L, sk) {
-    body(c, L.hood, '#00000044', false); c.rect(17, 37, 1, 8, '#e8e8f0'); c.rect(30, 37, 1, 8, '#e8e8f0');
-    neck(c, sk); c.poly([[10, 30], [11, 11], [17, 5], [31, 5], [37, 11], [38, 30], [33, 36], [15, 36]], L.hood);
-    c.poly([[15, 12], [33, 12], [34, 22], [31, 30], [17, 30], [14, 22]], sk[0]); c.rect(23, 21, 2, 4, sk[1]);
-    c.rect(16, 16, 7, 5, L.lens); c.rect(25, 16, 7, 5, L.lens); c.rect(23, 17, 2, 1, L.lens); c.rect(17, 17, 3, 1, '#ffffff'); c.rect(26, 17, 3, 1, '#ffffff');
-    c.rect(20, 27, 8, 1, '#7a3a3a');
+  hacker(c, L, o) {
+    torso(c, L.hood); const hd = hx(L.hood);
+    c.line(19, 38, 18, 46, 0.5, '#e8e8f0', 0.9); c.line(29, 38, 30, 46, 0.5, '#e8e8f0', 0.9); c.ell(18, 46.4, 0.55, 0.55, '#e8e8f0'); c.ell(30, 46.4, 0.55, 0.55, '#e8e8f0');
+    c.poly([[8, 38], [9, 20], [12, 9], [19, 3.6], [29, 3.6], [36, 9], [39, 20], [40, 38], [31, 40], [17, 40]], (x, y) => mix(lt(hd, 0.1), dk(hd, 0.6), clamp((x - 9) / 30 + (y - 4) / 40, 0, 1)), 1, true);
+    c.poly([[14.4, 12], [19, 8.4], [29, 8.4], [33.6, 12], [34.4, 24], [30, 31.8], [24, 33], [18, 31.8], [13.6, 24]], dk(hd, 0.34), 1, true);
+    face(c, Object.assign({}, o, { noEyes: true }));
+    c.soft(24, 10.5, 12, 3, [0, 0, 0], 0.32); c.soft(14, 22, 2.4, 9, [0, 0, 0], 0.3); c.soft(34, 22, 2.4, 9, [0, 0, 0], 0.3);
+    const lens = hx(L.lens);
+    for (const cx of [19.6, 28.4]) { c.poly([[cx - 3.1, 17.6], [cx + 3.1, 17.6], [cx + 2.6, 21.2], [cx - 2.6, 21.2]], lens, 0.22, true); c.curve([[cx - 3.2, 17.8], [cx, 17.4], [cx + 3.2, 17.8], [cx + 2.7, 21.3], [cx - 2.7, 21.3], [cx - 3.2, 17.8]], 0.4, '#17121a'); c.line(cx - 2.2, 18.5, cx - 0.4, 18.5, 0.4, lens, 0.9); c.ell(cx + 0.2, 19.6, 1, 1, lens, 0.9); }
+    c.line(22.6, 18, 25.4, 18, 0.4, '#17121a'); c.soft(24, 20, 10, 3, lens, 0.12);
   },
-  boss(c, L, sk) {
-    body(c, L.suit, '#00000033', false); c.poly([[18, 35], [24, 47], [30, 35]], '#f1e8d4'); c.poly([[22, 36], [26, 36], [27, 46], [24, 48], [21, 46]], L.tie);
-    neck(c, sk); head(c, sk, { shade: L.hair }); hairCut(c, L.hair); c.rect(15, 11, 18, 2, L.hair);
-    c.rect(18, 25, 12, 2, L.hair);
+  boss(c, L, o) {
+    torso(c, L.suit); const su = hx(L.suit);
+    c.poly([[17, 35], [24, 48], [31, 35], [28, 34.6], [24, 38], [20, 34.6]], '#f3eee4', 1); c.poly([[22.4, 37], [25.6, 37], [26.4, 40], [24, 48], [21.6, 40]], hx(L.tie), 1, true); c.poly([[22.2, 36.4], [25.8, 36.4], [25.2, 38.4], [22.8, 38.4]], dk(hx(L.tie), 0.7));
+    c.poly([[13, 36.5], [20, 34.6], [23.4, 46], [18.6, 48], [12, 48]], dk(su, 0.72), 1, false); c.poly([[35, 36.5], [28, 34.6], [24.6, 46], [29.4, 48], [36, 48]], dk(su, 0.62), 1, false);
+    c.rect(33, 41, 4, 1.4, '#f3eee4', 0.9);
+    face(c, Object.assign({}, o, { brow: L.hair }));
+    const hr = L.hair;
+    hairShape(c, [[14, 17], [14.6, 11], [18, 7.2], [24, 6], [30, 7.2], [33.4, 11], [34, 17], [32, 13.6], [27, 11.6], [19, 11.4], [16, 13.6]], hr, { sx: 20, sy: 8.4, glint: 0.28 });
+    c.poly([[20.6, 27.2], [22.8, 26.4], [24, 26.8], [25.2, 26.4], [27.4, 27.2], [26, 28.2], [24, 27.8], [22, 28.2]], hx(hr), 1, true);
   },
-  lookout(c, L, sk) {
-    body(c, L.jacket, '#00000033', false); c.rect(14, 35, 4, 8, '#00000033'); c.rect(30, 35, 4, 8, '#00000033');
-    neck(c, sk); head(c, sk, { shade: L.hair, look: 'side' });
-    c.poly([[13, 15], [14, 8], [34, 8], [35, 15]], L.band); c.rect(13, 13, 22, 2, '#00000026'); c.poly([[33, 10], [41, 7], [42, 14], [34, 14]], L.band);
-    c.rect(16, 10, 16, 1, '#ffffff55');
+  lookout(c, L, o) {
+    torso(c, L.jacket); const jc = hx(L.jacket);
+    c.poly([[13, 36], [18, 34.8], [20, 42], [15, 48], [11, 48]], dk(jc, 0.72)); c.poly([[35, 36], [30, 34.8], [28, 42], [33, 48], [37, 48]], dk(jc, 0.62)); c.rect(23.4, 38, 1.2, 10, [20, 20, 20], 0.45);
+    face(c, Object.assign({}, o, { side: true, brow: L.hair }));
+    const bd = hx(L.band);
+    c.poly([[13.4, 15.2], [14, 9.4], [18, 5.8], [24, 5], [30, 5.8], [34, 9.4], [34.6, 15.2], [24, 12.4]], (x, y) => mix(lt(bd, 0.12), dk(bd, 0.72), clamp((x - 14) / 22, 0, 1)), 1, true);
+    c.curve([[13.6, 14.6], [24, 12], [34.4, 14.6]], 0.6, dk(bd, 0.6), 0.5);
+    for (let i = 0; i < 14; i++) c.ell(15 + (i % 7) * 3, 8.6 + Math.floor(i / 7) * 2.6 + (i % 2) * 0.6, 0.35, 0.35, '#ffffff', 0.55);
+    c.poly([[33.6, 10.6], [41.4, 8], [42.4, 11.2], [38.4, 12.4], [43, 15.6], [39, 17], [35.2, 14.4]], bd, 1, true); c.line(34.4, 12.4, 41, 10.6, 0.3, [0, 0, 0], 0.2);
+    c.soft(24, 15.4, 10, 1.2, [0, 0, 0], 0.22);
   },
-  muscle(c, L, sk) {
-    c.rect(0, 40, 6, 8, sk[1]); c.rect(42, 40, 6, 8, sk[1]);
-    c.poly([[0, 48], [2, 39], [12, 35], [36, 35], [46, 39], [48, 48]], sk[1]); c.poly([[7, 48], [9, 38], [16, 35], [32, 35], [39, 38], [41, 48]], L.tank);
-    neck(c, sk, true); head(c, sk, { shade: L.hair });
-    c.rect(18, 10, 6, 2, '#ffffff33'); c.rect(30, 17, 1, 8, '#8a3a3a'); c.rect(29, 19, 3, 1, '#8a3a3a');
-    c.rect(17, 25, 14, 2, '#00000022');
+  muscle(c, L, o) {
+    const MS = spline([[0, 48], [0.6, 41.5], [6, 37], [15, 35], [33, 35], [42, 37], [47.4, 41.5], [48, 48]], true), sk = SKINS[o.skin], sc = (x, y) => mix(hx(sk[0]), hx(sk[1]), clamp(0.4 + (x - 24) * 0.04, 0, 1));
+    c.poly(MS, sc); c.soft(8, 41, 5, 5, [255, 255, 255], 0.1); c.soft(40, 42, 5, 6, [0, 0, 0], 0.2);
+    c.poly([[8, 48], [9.6, 38.6], [15.4, 35.6], [19, 36.4], [21, 42], [18, 48]], hx(L.tank), 1, true); c.poly([[40, 48], [38.4, 38.6], [32.6, 35.6], [29, 36.4], [27, 42], [30, 48]], dk(hx(L.tank), 0.75), 1, true);
+    c.poly([[19, 36.4], [24, 40.6], [29, 36.4], [30, 48], [18, 48]], dk(hx(L.tank), 0.88), 1, false);
+    c.soft(24, 38, 8, 3, [0, 0, 0], 0.2);
+    face(c, Object.assign({}, o, { wide: true, frown: true, tilt: 0.55, stubble: true, brow: L.hair }));
+    c.soft(20, 10.4, 5.6, 2.8, [255, 255, 255], 0.2); c.soft(18, 14, 3, 2, [255, 255, 255], 0.08);
+    c.curve([[30.2, 14.6], [31, 17.6], [30.4, 21]], 0.36, '#8a4a4a', 0.9); c.line(29.2, 17, 32.2, 18.2, 0.2, '#d8b8b0', 0.8);
   },
-  accountant(c, L, sk) {
-    body(c, L.shirt, '#00000022', false); c.poly([[10, 48], [12, 39], [19, 36], [20, 48]], L.vest); c.poly([[38, 48], [36, 39], [29, 36], [28, 48]], L.vest);
-    c.poly([[22, 36], [26, 36], [27, 46], [24, 48], [21, 46]], L.tie); c.rect(14, 40, 3, 1, '#ffffff'); c.rect(15, 38, 1, 3, '#1a1626');
-    neck(c, sk); head(c, sk, { noEyes: true });
-    c.poly([[14, 12], [16, 8], [24, 6], [32, 8], [34, 12], [34, 14], [28, 11], [18, 11], [14, 14]], L.hair);
-    c.rect(16, 16, 7, 6, '#ffffff22'); c.rect(25, 16, 7, 6, '#ffffff22');
-    for (const x of [16, 25]) { c.rect(x, 16, 7, 1, INK); c.rect(x, 21, 7, 1, INK); c.rect(x, 16, 1, 6, INK); c.rect(x + 6, 16, 1, 6, INK); }
-    c.rect(23, 17, 2, 1, INK); c.rect(19, 18, 2, 3, INK); c.rect(28, 18, 2, 3, INK);
-    c.rect(17, 14, 5, 1, L.hair); c.rect(26, 14, 5, 1, L.hair);
+  accountant(c, L, o) {
+    torso(c, L.shirt); const vs = hx(L.vest);
+    c.poly([[10, 48], [11.4, 40], [18, 36], [20, 48]], vs, 1, true); c.poly([[38, 48], [36.6, 40], [30, 36], [28, 48]], dk(vs, 0.85), 1, true);
+    c.poly([[22.4, 36.8], [25.6, 36.8], [26.2, 40], [24, 48], [21.8, 40]], hx(L.tie), 1, true); c.poly([[22.2, 36.2], [25.8, 36.2], [25.2, 38.2], [22.8, 38.2]], dk(hx(L.tie), 0.7));
+    c.line(14.4, 42, 14.4, 44.6, 0.7, '#d8d8e0'); c.line(14.4, 41.4, 14.4, 42, 0.5, '#ff2d95');
+    face(c, Object.assign({}, o, { noBrows: false, brow: L.hair }));
+    hairShape(c, [[14.2, 15], [14.8, 10.6], [18.6, 7.4], [24, 6.8], [30, 8], [33.4, 11], [33.8, 14.6], [31, 11.8], [25, 10.4], [18.8, 11.4], [16, 13.6]], L.hair, { sx: 22, sy: 8.4, glint: 0.2 });
+    for (const cx of [19.8, 28.2]) { c.ell(cx, 19.4, 3.1, 2.7, [255, 255, 255], 0.1); c.curve([[cx - 3.1, 19.4], [cx - 2, 16.9], [cx + 2, 16.9], [cx + 3.1, 19.4], [cx + 2, 22], [cx - 2, 22], [cx - 3.1, 19.4]], 0.38, '#1a1620'); c.line(cx - 1.8, 17.6, cx - 0.4, 17.4, 0.3, [255, 255, 255], 0.6); }
+    c.line(22.9, 19, 25.1, 19, 0.35, '#1a1620'); c.line(16.7, 19.2, 14, 18.6, 0.3, '#1a1620'); c.line(31.3, 19.2, 34, 18.6, 0.3, '#1a1620');
   },
 };
 function kingpin(c) {
-  const sk = SKINS[2];
-  body(c, '#101018', '#00000044', false); c.poly([[18, 35], [24, 47], [30, 35]], '#f1e8d4');
-  c.rect(15, 38, 18, 2, '#ffd24a'); c.rect(23, 40, 2, 4, '#ffd24a'); c.rect(22, 44, 4, 3, '#ffd24a');
-  neck(c, sk); head(c, sk, { noEyes: true });
-  c.rect(18, 25, 12, 2, '#141018');
-  c.rect(15, 16, 18, 5, '#ffd24a'); c.rect(15, 16, 18, 1, '#fff2a8'); c.rect(23, 17, 2, 1, '#ffd24a'); c.rect(17, 20, 4, 1, '#00000033'); c.rect(27, 20, 4, 1, '#00000033');
-  c.rect(8, 12, 32, 3, '#1a1626'); c.poly([[14, 12], [16, 3], [32, 3], [34, 12]], '#1a1626'); c.rect(14, 9, 20, 2, '#ff2d95');
+  const o = { skin: 2, eye: 1, brow: '#141018' };
+  torso(c, '#101018'); const su = [16, 16, 24];
+  c.poly([[17, 35], [24, 48], [31, 35], [28, 34.6], [24, 38], [20, 34.6]], '#f3eee4', 1); c.poly([[13, 36.5], [20, 34.6], [23.4, 46], [18.6, 48], [12, 48]], dk(su, 1.4), 1, false); c.poly([[35, 36.5], [28, 34.6], [24.6, 46], [29.4, 48], [36, 48]], dk(su, 1.1), 1, false);
+  c.curve([[17.5, 35.6], [18.5, 41], [24, 44.4], [29.5, 41], [30.5, 35.6]], 0.9, '#e8b82e'); c.curve([[17.5, 35.6], [18.5, 41], [24, 44.4], [29.5, 41], [30.5, 35.6]], 0.3, '#fff2a8', 0.7);
+  c.ell(24, 45.6, 1.7, 1.9, '#e8b82e'); c.ell(23.5, 45, 0.5, 0.6, '#fff2a8', 0.8);
+  face(c, Object.assign({}, o, { noEyes: true, noBrows: true, stubble: true }));
+  c.poly([[20, 26.6], [22.8, 25.8], [24, 26.4], [25.2, 25.8], [28, 26.6], [26.2, 28], [24, 27.4], [21.8, 28]], '#141018', 1, true); c.poly([[22.5, 31.2], [25.5, 31.2], [24.6, 33.4], [23.4, 33.4]], '#141018');
+  for (const cx of [19.8, 28.2]) { c.poly([[cx - 3.4, 17.4], [cx + 3.4, 17.4], [cx + 3, 21.4], [cx, 22.2], [cx - 3, 21.4]], (x, y) => mix([255, 214, 90], [190, 130, 20], clamp((y - 17.4) / 4.6 + (x - cx) * 0.03, 0, 1)), 1, true); c.line(cx - 2.6, 18.4, cx - 0.4, 18.4, 0.4, [255, 255, 255], 0.75); c.curve([[cx - 3.4, 17.6], [cx, 17.2], [cx + 3.4, 17.6]], 0.3, '#8a5a10'); }
+  c.line(23.2, 18.2, 24.8, 18.2, 0.4, '#8a5a10'); c.soft(24, 20.6, 10, 2.6, [0, 0, 0], 0.18);
+  c.poly([[5, 14.6], [14, 13.2], [34, 13.2], [43, 14.6], [40, 16.8], [24, 17.8], [8, 16.8]], '#17131f', 1, true); c.soft(24, 18, 12, 2.2, [0, 0, 0], 0.4);
+  c.poly([[13.6, 14], [14.6, 6.4], [19, 3.6], [29, 3.6], [33.4, 6.4], [34.4, 14]], (x, y) => mix([40, 34, 52], [14, 12, 20], clamp((x - 14) / 20 + (y - 4) / 12, 0, 1)), 1, true); c.curve([[22, 4], [24, 6.4], [26, 4]], 0.5, '#0c0a10', 0.7);
+  c.poly([[13.8, 11], [34.2, 11], [34.4, 13.2], [13.6, 13.2]], '#ff2d95', 1, false); c.line(14, 11.4, 34, 11.4, 0.3, '#ff8ac0', 0.6);
 }
 
 // small extras on a face, so two of the same crook still look different
 function accessory(c, acc, col) {
-  if (acc === 'plaster') { c.poly([[26, 22], [32, 20], [33, 23], [27, 25]], '#f0d2a8'); c.rect(29, 21, 1, 3, '#c89a68'); }
-  else if (acc === 'earring') { c.rect(11, 21, 2, 3, col); c.rect(11, 24, 2, 1, '#00000033'); }
-  else if (acc === 'cig') { c.rect(25, 26, 11, 1, '#f4f4f4'); c.rect(34, 26, 2, 1, '#ff8a3d'); c.circle(38, 22, 2, '#cfd6e6', 0.3); c.circle(40, 18, 2.5, '#cfd6e6', 0.2); }
+  if (acc === 'plaster') { c.poly([[26.6, 22.6], [32, 20.6], [33.2, 23], [27.8, 25.2]], '#ecc89c', 1, true); c.soft(30, 23, 3, 1.4, [0, 0, 0], 0.14); c.poly([[29, 21.4], [30.6, 21], [31.2, 24], [29.6, 24.4]], '#f6dcb8', 0.9); c.ell(29.8, 22.7, 0.25, 0.25, '#c89a68'); c.ell(30.4, 23.1, 0.25, 0.25, '#c89a68'); }
+  else if (acc === 'earring') { const cc = typeof col === 'string' ? col : '#ffd24a'; c.curve([[13.8, 24.2], [12.2, 25.4], [12.6, 27.4], [14, 27.8], [14.8, 26.6]], 0.5, cc); c.soft(13.6, 25.6, 1.6, 1.4, [255, 255, 255], 0.0); c.line(12.6, 25.4, 12.8, 26.6, 0.2, [255, 255, 255], 0.6); }
+  else if (acc === 'cig') { c.poly([[24.6, 28.3], [35, 27.6], [35.2, 28.8], [24.8, 29.5]], '#f4f1ea'); c.poly([[34.4, 27.6], [36, 27.5], [36.2, 28.7], [34.6, 28.8]], '#ff6a2a'); c.ell(36.2, 28.1, 0.6, 0.7, '#ffd24a', 0.9); c.soft(38.6, 24, 1.4, 3.6, [220, 224, 235], 0.32); c.soft(40.2, 18.6, 1.8, 3.6, [220, 224, 235], 0.22); }
 }
 
 function bgFor(c, team, bgIdx) {
-  c.rect(0, 0, N, N, BGS[team][bgIdx]);
-  for (let y = 6; y < N; y += 8) c.rect(0, y, N, 1, '#ffffff', 0.07);
+  const b = hx(BGS[team][bgIdx]);
+  c.rect(0, 0, N, N, (x, y) => mix(lt(b, 0.06), dk(b, 0.7), clamp(y / 48 * 0.7 + (x - 24) * 0.01, 0, 1)));
+  for (let y = 5; y < N; y += 8) c.rect(0, y, N, 0.18, [255, 255, 255], 0.08);
+  c.soft(24, 20, 24, 24, [255, 255, 255], 0.05);
 }
 function paint(slot, secret) {
-  const t = traitsFor(slot, secret), L = SPECIES[t.team][t.species].looks[t.look], sk = SKINS[L.skin];
+  const t = traitsFor(slot, secret), L = SPECIES[t.team][t.species].looks[t.look];
   const c = new Canvas(BGS[t.team][t.bg]); bgFor(c, t.team, t.bg);
-  DRAW[t.species](c, L, sk);
+  DRAW[t.species](c, L, { skin: L.skin, eye: (t.look + t.species.length) % 4, brow: L.hair });
   accessory(c, t.acc, ACC_COL[t.accColor]);
   return c;
 }
-function paintFlagship() { const c = new Canvas('#14091f'); for (let y = 6; y < N; y += 8) c.rect(0, y, N, 1, '#ffd24a', 0.12); kingpin(c); return c; }
+function paintFlagship() { const c = new Canvas('#14091f'); c.rect(0, 0, N, N, (x, y) => mix([40, 20, 60], [12, 6, 20], clamp(y / 48 + (x - 24) * 0.01, 0, 1))); for (let y = 5; y < N; y += 8) c.rect(0, y, N, 0.18, '#ffd24a', 0.16); c.soft(24, 20, 24, 24, [255, 214, 90], 0.1); kingpin(c); return c; }
 
-// ---- flat pictures for logos and tiles: the sprite scaled up with no smoothing, cached ----
+// ---- flat pictures for logos and tiles, cached because drawing one takes a moment ----
 const picCache = new Map();
-function scaled(c, size) {
-  size = Math.max(N, Math.min(2048, Math.round(size) || 512));
-  const out = Buffer.alloc(size * size * 3);
-  for (let y = 0; y < size; y++) { const sy = Math.floor(y * N / size); for (let x = 0; x < size; x++) { const sx = Math.floor(x * N / size), s = (sy * N + sx) * 3, o = (y * size + x) * 3; out[o] = c.px[s]; out[o + 1] = c.px[s + 1]; out[o + 2] = c.px[s + 2]; } }
-  return encodePng(out, size, size);
-}
 function cached(key, size, make) {
+  size = Math.max(32, Math.min(2048, Math.round(size) || 512));
   const k = key + ':' + size; let b = picCache.get(k);
-  if (!b) { b = scaled(make(), size); picCache.set(k, b); if (picCache.size > 160) picCache.delete(picCache.keys().next().value); }
+  if (!b) { b = encodePng(make().toRgb(size), size, size); picCache.set(k, b); if (picCache.size > 160) picCache.delete(picCache.keys().next().value); }
   return b;
 }
+
 const png = (slot, secret, size) => cached('a' + secret + ':' + slot, size || 512, () => paint(slot, secret));
 const founderPng = (size) => cached('prime', size || 512, paintFlagship);
 
