@@ -54,7 +54,7 @@ textarea{min-height:72px;resize:vertical}
 .bear{position:relative;background:#1a1626;border:0;border-bottom:5px solid var(--line);border-radius:10px;padding:0 0 12px;display:grid;gap:4px;justify-items:start;text-align:left;min-width:0;font:inherit;color:#f1e8d4;cursor:pointer;overflow:hidden}
 .bear::before{content:'WANTED';position:absolute;left:10px;top:8px;z-index:1;font:400 22px var(--display);letter-spacing:.08em;color:#ff3b4e;text-shadow:0 1px 0 #000}
 .bear.launched::before{content:'CLAIMED';color:#19e3d0}.bear.held::before{content:'HELD';color:#ff8a3d}
-.bear img{width:100%;height:auto;aspect-ratio:1;image-rendering:pixelated;border-radius:0;display:block}
+.bear img{width:100%;height:auto;aspect-ratio:1;border-radius:0;display:block}
 .bear b{font-family:var(--mono);font-weight:400;font-size:17px;overflow-wrap:anywhere;padding:0 12px}
 .bear.launched{text-decoration:none;color:inherit}
 a.bear.launched{cursor:pointer}
@@ -68,11 +68,11 @@ a.bear.launched:hover,a.bear.launched:focus-visible{border-color:var(--gold)}
 .bear.held{cursor:default}
 .bear.held img,.bear.held canvas{filter:grayscale(.85) brightness(.55)}
 .facts{font:500 13px var(--mono);color:var(--dim)}
-.founder{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:18px;align-items:center;background:var(--surface);border:2px solid var(--gold);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 0 0 3px rgba(255,45,149,.12)}
-@media(max-width:560px){.founder{grid-template-columns:minmax(0,1fr);justify-items:start}.founder img{max-width:200px}}
-.founder img{width:100%;height:auto;aspect-ratio:1;image-rendering:pixelated;border-radius:8px;display:block}
+.founder{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:24px;align-items:center;margin-top:6px;background:var(--surface);border:2px solid var(--gold);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 0 0 3px rgba(255,45,149,.12)}
+@media(max-width:560px){.founder{grid-template-columns:minmax(0,1fr);justify-items:start}.founder img{max-width:240px}}
+.founder img{width:100%;height:auto;aspect-ratio:1;border-radius:8px;display:block}
 .founder .tag{font:600 13px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
-.founder h3{font:800 22px var(--sans);margin:2px 0 4px;overflow-wrap:anywhere}
+.founder h3{font:400 44px var(--display);letter-spacing:.02em;margin:2px 0 4px;overflow-wrap:anywhere}
 .founder p{margin:0 0 10px;color:var(--dim);font-size:14px;max-width:54ch}
 .founder a.btn{text-decoration:none;display:inline-block}
 .openmenu{display:inline-block;position:relative;margin:10px 0 0 12px;vertical-align:middle}
@@ -83,7 +83,7 @@ a.bear.launched:hover,a.bear.launched:focus-visible{border-color:var(--gold)}
 .recent{display:flex;gap:10px;flex-wrap:wrap}
 .recent a{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:5px 14px 5px 5px;color:var(--fg);text-decoration:none;min-width:0}
 .recent a:hover{border-color:var(--gold)}
-.recent img{width:36px;height:36px;border-radius:50%;image-rendering:pixelated;flex:none}
+.recent img{width:36px;height:36px;border-radius:50%;flex:none}
 .recent b{font-weight:800;font-size:14px;display:block;line-height:1.2;overflow-wrap:anywhere}
 .recent small{font:500 13px var(--mono);color:var(--dim)}
 .feerow{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#0c0a18}
@@ -143,10 +143,9 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
 <h1>Make your move. <span>Launch a coin.</span></h1>
 <p class="lede">The headlines say World War 3. The rumours say a 90-day blackout. While the city panics, make your move. Every coin launched here claims one of the eight most wanted crooks as its logo (a robber, a driver, a safecracker, a hacker, a boss, a lookout, a muscle man or an accountant), and it stays with that coin for good. Each one reports the coin’s public numbers, read from the chain.</p>
 
-<div id="recent" hidden><h2>Recent launches</h2><div class="recent" id="recentlist"></div></div>
-
-<h2>Wanted</h2>
 <div class="founder" id="founder" hidden></div>
+
+<div id="recent" hidden><h2>Recent launches</h2><div class="recent" id="recentlist"></div></div>
 
 <h2>Street Crew vs Syndicate</h2>
 <div class="board" id="board"></div>
@@ -274,8 +273,9 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
   }
   function drawFounder(){
     var f=st&&st.founder,box=$('founder');
-    box.hidden=!f;[].slice.call(document.querySelectorAll('h2')).forEach(function(h){if(h.textContent==='Wanted')h.hidden=!f});
-    if(!f)return;box.textContent='';
+    if(!st){box.hidden=true;return}
+    if(!f)f={state:'display',short:''};
+    box.hidden=false;box.textContent='';
     var im=document.createElement('img');im.src='/api/founder.png';im.alt='Wanted, the flagship: the Kingpin: slicked black hair with a silver streak, a pinstripe suit and a cigar';box.appendChild(im);
     var d=document.createElement('div'),tg=document.createElement('div'),h=document.createElement('h3'),p=document.createElement('p');
     tg.className='tag';tg.textContent='Flagship · one of one';d.appendChild(tg);
@@ -284,7 +284,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
       if(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(f.mint||'')){var a=document.createElement('a');a.className='btn go';a.href='/coin/'+f.mint;a.textContent='Open the coin page';d.appendChild(a)}
     }else{
       h.textContent='Wanted';
-      p.textContent=f.state==='held'?'The flagship coin is being launched right now.':'The Kingpin: slicked black hair with a silver streak, a pinstripe suit and a cigar. Not in the numbered set, and reserved for Wanted’s founder wallet ('+f.short+').';
+      p.textContent=f.state==='held'?'The flagship coin is being launched right now.':'The Kingpin: slicked black hair with a silver streak, a pinstripe suit and a cigar. Not in the numbered set, and reserved for Wanted’s founder wallet'+(f.short?' ('+f.short+')':'')+'.';
       d.appendChild(h);d.appendChild(p);
       if(f.agent&&f.agent.ability){var pa=document.createElement('p');pa.style.cssText='margin:6px 0 0;font-size:14px;color:var(--dim)';var pb=document.createElement('b');pb.style.color='var(--gold)';pb.textContent='Special ability: '+f.agent.ability.name+'. ';pa.appendChild(pb);pa.appendChild(document.createTextNode(f.agent.ability.does));d.appendChild(pa)}
       if(f.state==='reserved'&&pubkey&&short(pubkey)===f.short){var b=document.createElement('button');b.type='button';b.className='btn go';b.textContent=pickSlot==='founder'?'Wanted selected':'Launch the Wanted coin';
