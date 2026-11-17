@@ -276,7 +276,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
     var f=st&&st.founder,box=$('founder');
     box.hidden=!f;[].slice.call(document.querySelectorAll('h2')).forEach(function(h){if(h.textContent==='Wanted')h.hidden=!f});
     if(!f)return;box.textContent='';
-    var im=document.createElement('img');im.src='/api/founder.png';im.alt='Wanted, the flagship: the Kingpin: a fedora, gold shades and a chain';box.appendChild(im);
+    var im=document.createElement('img');im.src='/api/founder.png';im.alt='Wanted, the flagship: the Kingpin: silver hair, gold glasses, a cream suit and a cigar';box.appendChild(im);
     var d=document.createElement('div'),tg=document.createElement('div'),h=document.createElement('h3'),p=document.createElement('p');
     tg.className='tag';tg.textContent='Flagship · one of one';d.appendChild(tg);
     if(f.state==='launched'){
@@ -284,7 +284,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
       if(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(f.mint||'')){var a=document.createElement('a');a.className='btn go';a.href='/coin/'+f.mint;a.textContent='Open the coin page';d.appendChild(a)}
     }else{
       h.textContent='Wanted';
-      p.textContent=f.state==='held'?'The flagship coin is being launched right now.':'The Kingpin: a fedora, gold shades and a chain. Not in the numbered set, and reserved for Wanted’s founder wallet ('+f.short+').';
+      p.textContent=f.state==='held'?'The flagship coin is being launched right now.':'The Kingpin: silver hair, gold glasses, a cream suit and a cigar. Not in the numbered set, and reserved for Wanted’s founder wallet ('+f.short+').';
       d.appendChild(h);d.appendChild(p);
       if(f.agent&&f.agent.ability){var pa=document.createElement('p');pa.style.cssText='margin:6px 0 0;font-size:14px;color:var(--dim)';var pb=document.createElement('b');pb.style.color='var(--gold)';pb.textContent='Special ability: '+f.agent.ability.name+'. ';pa.appendChild(pb);pa.appendChild(document.createTextNode(f.agent.ability.does));d.appendChild(pa)}
       if(f.state==='reserved'&&pubkey&&short(pubkey)===f.short){var b=document.createElement('button');b.type='button';b.className='btn go';b.textContent=pickSlot==='founder'?'Wanted selected':'Launch the Wanted coin';
