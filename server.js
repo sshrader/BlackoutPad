@@ -1,5 +1,5 @@
 'use strict';
-// PooPad: anyone can launch a pump.fun coin. Each launch claims one of a small set of power-grid assets as its logo,
+// HeistPad: anyone can launch a pump.fun coin. Each launch claims one of a small set of crooks as its logo,
 // and that agent is then locked to the coin. The launcher signs everything from their own wallet.
 const http = require('http');
 const fs = require('fs');
@@ -77,7 +77,7 @@ function verifySignature(wallet, message, sigB64) {
 
 const challenges = new Map();
 function challengeMessage(wallet, nonce, expires) {
-  return 'PooPad Launch\nSign to prove you own this wallet. This sends no transaction and costs nothing.\nWallet: ' + wallet + '\nNonce: ' + nonce + '\nExpires: ' + new Date(expires).toISOString();
+  return 'HeistPad Launch\nSign to prove you own this wallet. This sends no transaction and costs nothing.\nWallet: ' + wallet + '\nNonce: ' + nonce + '\nExpires: ' + new Date(expires).toISOString();
 }
 
 const hits = new Map();
@@ -161,8 +161,8 @@ function loadBears(c) {
 function saveBears(c, d) { const f = bearsFile(c); fs.writeFileSync(f + '.tmp', JSON.stringify(d)); fs.renameSync(f + '.tmp', f); }
 const holdFor = (d, token) => { for (const k of Object.keys(d.holds)) if (d.holds[k].token === token) return { slot: k === 'F' ? 'F' : Number(k), hold: d.holds[k] }; return null; };
 const bearLabel = (slot) => (slot === 'F' ? 'founder' : slot + 1); // what the pages are told
-const FAVICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#030304"/><text x="32" y="48" font-size="44" text-anchor="middle">💩</text></svg>';
-const PRIME = { name: 'PooPad', role: 'FLAGSHIP', blurb: 'The one-of-one flagship. A crowned poop, sweating green. Reserved for PooPad’s founder wallet.', ability: art.ABILITIES.FLAGSHIP };
+const FAVICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0c0a18"/><polygon points="32,8 38,26 57,26 42,38 48,56 32,45 16,56 22,38 7,26 26,26" fill="#ff2d95"/></svg>';
+const PRIME = { name: 'HeistPad', role: 'FLAGSHIP', blurb: 'The one-of-one flagship. The Kingpin: a fedora, gold shades and a chain. Reserved for HeistPad’s founder wallet.', ability: art.ABILITIES.FLAGSHIP };
 const shortAddr = (a) => a.slice(0, 4) + '…' + a.slice(-4);
 
 // BTC / SOL spot prices for the header ticker (cached 30s, tries several free sources)
@@ -200,7 +200,7 @@ function bearsState(res) {
   send(res, 200, {
     cluster: c.cluster, total: c.total, maxBuy: c.maxBuy, silhouette: art.silhouette(), bears, recent,
     open: bears.filter((b) => b.state === 'open').length,
-    teams: ['GENERATOR', 'DISTRIBUTOR'].reduce((o, t) => { const m = bears.filter((b) => b.agent.team === t); o[t] = { total: m.length, launched: m.filter((b) => b.state === 'launched').length, open: m.filter((b) => b.state === 'open').length }; return o; }, {}),
+    teams: ['CREW', 'SYNDICATE'].reduce((o, t) => { const m = bears.filter((b) => b.agent.team === t); o[t] = { total: m.length, launched: m.filter((b) => b.state === 'launched').length, open: m.filter((b) => b.state === 'open').length }; return o; }, {}),
     founder: c.founderWallet ? (() => { const L = d.launched.F, H = d.holds.F; return { agent: PRIME, state: L ? 'launched' : H ? 'held' : 'reserved', short: shortAddr(c.founderWallet), symbol: L ? L.symbol : null, name: L ? L.name : null, mint: L ? L.mint : null }; })() : null,
     platform: c.platformWallet ? { wallet: c.platformWallet, bps: PLATFORM_BPS } : null,
   });
@@ -231,7 +231,7 @@ async function reserve(req, res) {
   let slot;
   if (body.slot === 'founder') {
     // The Founder bear is not in the numbered set. Only FOUNDER_WALLET can take it, and only once per network.
-    if (!c.founderWallet || wallet !== c.founderWallet) { saveBears(c, d); return send(res, 403, { error: 'That agent is reserved for the PooPad founder.' }); }
+    if (!c.founderWallet || wallet !== c.founderWallet) { saveBears(c, d); return send(res, 403, { error: 'That agent is reserved for the HeistPad founder.' }); }
     if (d.launched.F) { saveBears(c, d); return send(res, 409, { error: 'The founder coin has already been launched.' }); }
     if (d.holds.F) { saveBears(c, d); return send(res, 409, { error: 'The flagship is being launched right now.' }); }
     slot = 'F';
@@ -365,7 +365,7 @@ async function coinInfo(res, mint) {
   const c = cfg();
   if (!B58_RE.test(mint)) return send(res, 404, { error: 'No such coin.' });
   const f = findLaunched(c, mint);
-  if (!f) return send(res, 404, { error: 'That coin was not launched from PooPad.' });
+  if (!f) return send(res, 404, { error: 'That coin was not launched from HeistPad.' });
   const key = c.cluster + ':' + mint, hit = coinCache.get(key);
   let onchain;
   if (hit && Date.now() - hit.at < 45000) onchain = hit.data;
@@ -406,7 +406,7 @@ async function adminState(req, res) {
   };
   const bears = [];
   for (let i = 0; i < c.total; i++) bears.push(row(String(i), 'Agent #' + String(i + 1).padStart(2, '0')));
-  if (c.founderWallet || d.launched.F || d.holds.F) bears.unshift(row('F', 'PooPad'));
+  if (c.founderWallet || d.launched.F || d.holds.F) bears.unshift(row('F', 'HeistPad'));
   send(res, 200, { cluster: c.cluster, total: c.total, founderWallet: c.founderWallet || null, platformWallet: c.platformWallet || null, bears });
 }
 
@@ -581,5 +581,5 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-if (require.main === module) server.listen(PORT, '0.0.0.0', () => console.log('PooPad listening on ' + PORT + ', data in ' + DATA_DIR));
+if (require.main === module) server.listen(PORT, '0.0.0.0', () => console.log('HeistPad listening on ' + PORT + ', data in ' + DATA_DIR));
 module.exports = server;

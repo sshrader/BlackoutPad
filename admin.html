@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<link rel="icon" href="/favicon.svg?v=4" type="image/svg+xml">
+<link rel="icon" href="/favicon.svg?v=5" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<title>Admin · PooPad</title>
+<title>Admin · HeistPad</title>
 <style>
-:root{--bg:#030304;--surface:rgba(7,8,19,.92);--surface2:#0b0c1a;--line:#1a1d3d;--fg:#e8ecff;--dim:#9aa3c7;--ember:#1ff2ff;--gold:#39ff88;--good:#39ff88;--bad:#ff3d6e;--sans:system-ui,-apple-system,'Segoe UI',sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace;color-scheme:dark}
+:root{--bg:#0c0a18;--surface:rgba(21,18,40,.92);--surface2:#151228;--line:#2a2548;--fg:#f4eeff;--dim:#b3a9d6;--ember:#ff8a3d;--gold:#ff2d95;--good:#19e3d0;--bad:#ff3b4e;--sans:system-ui,-apple-system,'Segoe UI',sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 var(--sans);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .wrap{max-width:860px;margin:0 auto;padding-block:28px 80px}
@@ -16,9 +16,9 @@ h1{font-size:26px;margin:0 0 4px}
 .sub{color:var(--dim);margin:0 0 20px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-input,select{flex:1;min-width:200px;font:15px var(--sans);color:var(--fg);background:#030304;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+input,select{flex:1;min-width:200px;font:15px var(--sans);color:var(--fg);background:#0c0a18;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
 button{font:700 14px var(--sans);border-radius:99px;padding:9px 18px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);cursor:pointer}
-button.go{background:var(--gold);color:#030304;border:0}
+button.go{background:var(--gold);color:#0c0a18;border:0}
 button.warn{border-color:var(--bad);color:var(--bad)}
 button:disabled{opacity:.5;cursor:not-allowed}
 .net{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--gold);color:var(--gold);padding:2px 8px;margin-left:8px}
@@ -36,7 +36,7 @@ a{color:var(--gold)}
 </head>
 <body>
 <div class="wrap">
-  <h1>PooPad admin <span class="net" id="net" hidden></span></h1>
+  <h1>HeistPad admin <span class="net" id="net" hidden></span></h1>
   <p class="sub">Free an agent so it can be launched again, for example after a test. The password is the <code>ADMIN_TOKEN</code> set in Railway. It is kept only on this page and is never saved.</p>
   <div class="panel">
     <div class="row"><input type="password" id="tok" placeholder="Admin password" autocomplete="off"><button class="go" id="go" type="button">Load agents</button></div>

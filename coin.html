@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<link rel="icon" href="/favicon.svg?v=4" type="image/svg+xml">
+<link rel="icon" href="/favicon.svg?v=5" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<title>Coin · PooPad</title>
+<title>Coin · HeistPad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#030304;--surface:rgba(7,8,19,.92);--surface2:#0b0c1a;--line:#1a1d3d;--fg:#e8ecff;--dim:#9aa3c7;--ember:#1ff2ff;--gold:#39ff88;--good:#39ff88;--bad:#ff3d6e;
---display:'Space Grotesk',Inter,system-ui,sans-serif;--sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;color-scheme:dark}
+:root{--bg:#0c0a18;--surface:rgba(21,18,40,.92);--surface2:#151228;--line:#2a2548;--fg:#f4eeff;--dim:#b3a9d6;--ember:#ff8a3d;--gold:#ff2d95;--good:#19e3d0;--bad:#ff3b4e;
+--display:'Bebas Neue','Arial Narrow',Impact,sans-serif;--sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'Special Elite','Courier New',ui-monospace,monospace;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.55;
 padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -36,7 +36,7 @@ h1{font-family:var(--sans);font-weight:800;font-size:clamp(30px,6vw,48px);line-h
 .desc{color:var(--dim);max-width:60ch;margin:8px 0 14px;overflow-wrap:anywhere}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .btn{font:700 14px var(--sans);border-radius:99px;padding:10px 18px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);cursor:pointer;text-decoration:none;display:inline-block}
-.btn.go{background:var(--gold);color:#030304;border:0}
+.btn.go{background:var(--gold);color:#0c0a18;border:0}
 h2{font-family:var(--sans);font-weight:800;font-size:22px;margin:34px 0 12px;text-shadow:0 1px 0 #000}
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 @media(max-width:700px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -45,7 +45,7 @@ h2{font-family:var(--sans);font-weight:800;font-size:22px;margin:34px 0 12px;tex
 .tile b{font:800 22px var(--sans);overflow-wrap:anywhere}
 .tile i{display:block;font:500 13px var(--sans);font-style:normal;color:var(--dim);margin-top:2px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
-.bar{height:16px;border:1px solid var(--line);border-radius:3px;background:#030304;overflow:hidden}
+.bar{height:16px;border:1px solid var(--line);border-radius:3px;background:#0c0a18;overflow:hidden}
 .bar>div{height:100%;background:linear-gradient(90deg,var(--ember),var(--gold))}
 .kv{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:8px 14px;font-size:14px}
 @media(max-width:560px){.kv{grid-template-columns:minmax(0,1fr)}.kv dt{margin-top:6px}}
@@ -57,8 +57,9 @@ td{padding:8px;border-bottom:1px solid rgba(77,56,38,.5);vertical-align:middle}
 td.n{font-family:var(--mono);width:34px;color:var(--dim)}
 td.p{font-family:var(--mono);width:84px;text-align:right}
 td.b{width:34%}
-td .mini{height:8px;background:#030304;border-radius:2px;overflow:hidden}
+td .mini{height:8px;background:#0c0a18;border-radius:2px;overflow:hidden}
 td .mini>div{height:100%;background:var(--gold)}
+.heat{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-top:22px}.heat .lab{font:400 13px var(--mono);letter-spacing:.08em;color:var(--dim)}.heat svg{width:30px;height:30px}.heat p{margin:0;flex:1 1 280px;min-width:0;color:var(--fg);font-size:15px}
 .tag{font:600 13px var(--mono);border:1px solid var(--line);border-radius:99px;padding:1px 7px;margin-left:6px;color:var(--dim)}
 .tag.dev{color:var(--gold);border-color:var(--gold)}
 .scroll{overflow-x:auto}
@@ -88,11 +89,11 @@ td .mini>div{height:100%;background:var(--gold)}
 <div class="veil" aria-hidden="true"></div>
 <div class="wrap">
 <header>
-  <a class="logo" href="/">PooPad<span class="net" id="net">devnet</span></a>
+  <a class="logo" href="/">HeistPad<span class="net" id="net">devnet</span></a>
   <a class="back" href="/">← All friends</a>
 </header>
 
-<div id="err" class="panel"><b>That coin is not in PooPad.</b><p class="note">Only coins launched here have a page. <a href="/">Back to the grid</a>.</p></div>
+<div id="err" class="panel"><b>That coin is not in HeistPad.</b><p class="note">Only coins launched here have a page. <a href="/">Back to the grid</a>.</p></div>
 
 <div id="page" hidden>
   <section class="hero">
@@ -106,7 +107,9 @@ td .mini>div{height:100%;background:var(--gold)}
     </div>
   </section>
 
-  <h2>Agent report</h2>
+  <div class="heat" id="heat" hidden></div>
+
+  <h2>Case file</h2>
   <div class="panel agentbox" id="agentbox"></div>
 
   <h2>Market</h2>
@@ -123,7 +126,7 @@ td .mini>div{height:100%;background:var(--gold)}
   <h2>Dev and launch</h2>
   <div class="panel"><dl class="kv" id="dev"></dl></div>
 
-  <p class="fine">Numbers are read from the chain and refresh every minute. They describe this coin now and do not predict anything. A coin can lose all of its value, and its character has no promised value. The agent only reads and reports public numbers: it does not trade, hold funds or predict anything. PooPad does not vouch for any coin launched here. Nothing here is financial advice.</p>
+  <p class="fine">Numbers are read from the chain and refresh every minute. They describe this coin now and do not predict anything. A coin can lose all of its value, and its character has no promised value. The agent only reads and reports public numbers: it does not trade, hold funds or predict anything. HeistPad does not vouch for any coin launched here. Nothing here is financial advice.</p>
 </div>
 </div>
 
@@ -144,12 +147,12 @@ td .mini>div{height:100%;background:var(--gold)}
 
   function draw(j){
     var main=j.cluster==='mainnet',oc=j.onchain||{},cv=oc.curve;
-    document.title=j.name+' ($'+j.symbol+') · PooPad';
+    document.title=j.name+' ($'+j.symbol+') · HeistPad';
     var n=$('net');n.textContent=main?'mainnet':'devnet · test';n.className='net'+(main?' main':'');
     $('pic').src=j.bear==='F'?'/api/founder.png':'/api/preview/'+j.bear+'.png';$('pic').alt=j.name;
     $('name').textContent=j.name;$('tick').textContent='$'+j.symbol;
     var chips=$('chips');chips.textContent='';
-    chips.appendChild(el('span','chip'+(j.founder?' good':''),j.founder?'PooPad · flagship, one of one':((j.agent?j.agent.name+' · '+j.agent.role.toLowerCase():'Agent #'+String(j.bear).padStart(2,'0'))+' · '+String(j.bear).padStart(2,'0')+' of '+j.total)));
+    chips.appendChild(el('span','chip'+(j.founder?' good':''),j.founder?'HeistPad · flagship, one of one':((j.agent?j.agent.name+' · '+j.agent.role.toLowerCase():'Agent #'+String(j.bear).padStart(2,'0'))+' · '+String(j.bear).padStart(2,'0')+' of '+j.total)));
     chips.appendChild(el('span','chip'+(cv&&cv.complete?' good':''),cv?(cv.complete?'Graduated':'On the bonding curve'):'Curve not read'));
     $('desc').textContent=j.description||'';
     var ab=$('agentbox');ab.textContent='';
@@ -159,6 +162,11 @@ td .mini>div{height:100%;background:var(--gold)}
       
     }
     if(j.report){
+      var warns=j.report.lines.filter(function(l){return l.level==='warn'}).length,heat=Math.min(5,1+warns),hb=$('heat');hb.textContent='';
+      var hl=el('span','lab','HEAT LEVEL');hb.appendChild(hl);var NS='http://www.w3.org/2000/svg';
+      for(var si=0;si<5;si++){var sv=document.createElementNS(NS,'svg');sv.setAttribute('viewBox','0 0 16 16');sv.setAttribute('aria-hidden','true');var pg=document.createElementNS(NS,'polygon');pg.setAttribute('points','8,1 10,6 15.5,6 11,9.5 12.8,15 8,11.6 3.2,15 5,9.5 .5,6 6,6');pg.setAttribute('fill',si<heat?'#ff2d95':'#2a2548');sv.appendChild(pg);hb.appendChild(sv)}
+      hb.setAttribute('role','img');hb.setAttribute('aria-label','Heat level '+heat+' of 5');
+      hb.appendChild(el('p',null,warns?(warns===1?'One thing is flagged, so this coin is running a little hot.':warns+' things are flagged, so this coin is running hot.'):'Nothing is flagged, so the heat stays at the minimum.'));hb.hidden=false;
       ab.appendChild(el('p','head'+(j.report.status==='attention'?' attention':''),j.report.headline));
       var ul=el('ul');j.report.lines.forEach(function(l){var li=el('li',l.level);li.appendChild(el('i',null,l.level==='warn'?'!':l.level==='good'?'+':'>'));li.appendChild(el('span',null,l.text));ul.appendChild(li)});ab.appendChild(ul);
       if(j.report.ability){var A=j.report.ability,ad=el('div','abil');ad.appendChild(el('h3',null,'Special ability: '+A.name));ad.appendChild(el('p','does',A.does));
@@ -202,7 +210,7 @@ td .mini>div{height:100%;background:var(--gold)}
     row('Dev holding',function(dd){dd.textContent=oc.devHoldPct==null?'not read':pct(oc.devHoldPct)+' of supply'});
     row('Launched',function(dd){dd.textContent=new Date(j.launchedAt).toLocaleString()});
     row('Launch transaction',function(dd){var a=el('a',null,j.signature.slice(0,8)+'…');a.href='https://explorer.solana.com/tx/'+j.signature+(main?'':'?cluster=devnet');a.target='_blank';a.rel='noopener';dd.appendChild(a)});
-    row('Creator fee split',function(dd){dd.textContent=j.founder?'Founder coin: all creator fees go to the founder wallet':j.platformBps?(j.feeSplit?'Signed: '+(100-j.platformBps/100)+'% to the dev, '+(j.platformBps/100)+'% to PooPad':'Not signed by the dev. All creator fees go to the dev.'):'All creator fees go to the dev'});
+    row('Creator fee split',function(dd){dd.textContent=j.founder?'Founder coin: all creator fees go to the founder wallet':j.platformBps?(j.feeSplit?'Signed: '+(100-j.platformBps/100)+'% to the dev, '+(j.platformBps/100)+'% to HeistPad':'Not signed by the dev. All creator fees go to the dev.'):'All creator fees go to the dev'});
     row('Mint',function(dd){dd.textContent=j.mint});
     $('page').hidden=false;
   }
