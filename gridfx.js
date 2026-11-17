@@ -1,5 +1,5 @@
 'use strict';
-// HeistPad's moving backdrops, plain 2D canvas. GridBg is the dim night city behind the pages; GridIntro is the intro: a city skyline with
+// WantedPad's moving backdrops, plain 2D canvas. GridBg is the dim night city behind the pages; GridIntro is the intro: a city skyline with
 // searchlights, police lights and a line-up of crooks in front of a height chart. Both stop when the page is hidden and respect reduced motion.
 (function (root) {
   var PINK = '#ff2d95', TEAL = '#19e3d0', RED = '#ff3b4e', BLUE = '#3b7bff';
