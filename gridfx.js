@@ -1,5 +1,5 @@
 'use strict';
-// Wanted's moving backdrops, plain 2D canvas, in a neon Miami-sunset style: a striped sun, palm trees, a night skyline and a car cruising by.
+// GTA's moving backdrops, plain 2D canvas, in a neon Miami-sunset style: a striped sun, palm trees, a night skyline and a car cruising by.
 // GridBg is the quiet scene behind the pages; GridIntro is the loading-screen style intro with the most wanted line-up.
 // Both stop when the page is hidden and respect reduced motion. Everything here is original art drawn in code.
 (function (root) {

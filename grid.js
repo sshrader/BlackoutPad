@@ -1,5 +1,5 @@
 'use strict';
-// The crooks for Wanted: eight original characters drawn as 48 x 48 pixel mugshots, plus a one-of-one Kingpin for the flagship.
+// The crooks for GTA: eight original characters drawn as 48 x 48 pixel mugshots, plus a one-of-one Kingpin for the flagship.
 // Street Crew (robber, driver, safecracker, hacker) and the Syndicate (boss, lookout, muscle, accountant). Even slots are crew and odd
 // slots are syndicate, so the teams stay level. Everything is drawn here with a tiny rasterizer and a PNG encoder: no libraries, no image files.
 const crypto = require('crypto');
