@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0c0a18;--surface:rgba(21,18,40,.92);--surface2:#151228;--line:#2a2548;--fg:#f4eeff;--dim:#b3a9d6;--ember:#ff8a3d;--gold:#ff2d95;--good:#19e3d0;--bad:#ff3b4e;
+:root{--bg:#11061d;--surface:rgba(30,10,48,.9);--surface2:#220b36;--line:#5a2a7e;--fg:#fff4fb;--dim:#d6bfee;--ember:#ff8a3d;--gold:#ff3d9a;--good:#2ef2e6;--sun:#ffd24a;--bad:#ff3b4e;
 --display:'Bebas Neue','Arial Narrow',Impact,sans-serif;--sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'Special Elite','Courier New',ui-monospace,monospace;color-scheme:dark}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -45,7 +45,7 @@ h2{font-family:var(--display);font-weight:400;font-size:38px;letter-spacing:.03e
 .btn:disabled{opacity:.5;cursor:not-allowed}
 label{display:block;font:600 13px var(--sans);color:var(--dim);margin-bottom:4px}
 label .rv{font-weight:400;opacity:.8;margin-left:6px}
-input[type=text],textarea,select{width:100%;font:500 15px var(--sans);color:var(--fg);background:#0c0a18;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+input[type=text],textarea,select{width:100%;font:500 15px var(--sans);color:var(--fg);background:#11061d;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
 textarea{min-height:72px;resize:vertical}
 .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media(max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
@@ -112,6 +112,32 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
 #splash .cap button{font:700 16px var(--sans);border-radius:99px;padding:11px 26px;border:1px solid #ff2d95;background:#06140c;color:#fff;cursor:pointer}
 #splash .slog{position:absolute;left:max(16px,4vw);top:max(16px,5vh);font:500 15px/1.5 var(--mono);color:#fff;text-shadow:0 1px 3px #000,0 0 8px #000;background:rgba(3,3,4,.82);border:1px solid rgba(255,45,149,.3);border-radius:10px;padding:10px 14px;white-space:pre;pointer-events:none;text-align:left;max-width:calc(100vw - 32px);overflow:hidden}
 #splash .slog:empty{display:none}
+
+/* GTA-style HUD look: neon sunset, slanted headings, a mission banner, a wanted level and a radio strip */
+.hud{display:flex;align-items:center;gap:10px;margin-left:12px}
+.hud .stars{display:inline-flex;gap:3px;color:var(--sun);font-size:20px;line-height:1;text-shadow:0 0 8px rgba(255,210,74,.6)}
+.hud small{font:400 12px var(--mono);letter-spacing:.14em;color:var(--dim)}
+.mission{display:inline-flex;align-items:center;gap:10px;margin:36px 0 -22px;font:400 20px var(--display);letter-spacing:.16em;color:var(--sun);text-shadow:0 2px 0 #000;transform:skew(-8deg)}
+.mission::before{content:'';width:34px;height:3px;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+h1{font-style:italic;transform:skew(-4deg);transform-origin:left bottom;letter-spacing:.005em;text-shadow:0 3px 0 #000,0 0 28px rgba(255,61,154,.35)}
+h1 span{background:linear-gradient(90deg,#ffd24a 0%,#ff8a3d 40%,#ff3d9a 80%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 3px 0 #000)}
+h2{font-style:italic;transform:skew(-6deg);transform-origin:left bottom;padding-left:14px;border-left:5px solid var(--gold);text-shadow:0 2px 0 #000,0 0 18px rgba(255,61,154,.3)}
+.btn.go,.openmenu summary,#splash .cap button{background:linear-gradient(90deg,#ff8a3d,#ff3d9a);color:#12041c;border:0;box-shadow:0 0 18px rgba(255,61,154,.35)}
+.btn,.wallet,.openmenu summary{border-radius:6px}
+.panel,.founder,.board,.result,.recent a{border-radius:8px}
+.founder{border-image:linear-gradient(135deg,#ffd24a,#ff3d9a,#7a3bff) 1;border-radius:0;background:linear-gradient(135deg,rgba(40,12,64,.94),rgba(24,8,40,.94))}
+.founder .tag{color:var(--sun)}
+.bear{border-radius:4px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.bear.sel{box-shadow:0 0 0 2px var(--sun),0 0 22px rgba(255,210,74,.35)}
+.radio{position:relative;z-index:1;overflow:hidden;margin:16px 0 0;border:1px solid var(--line);background:rgba(17,6,29,.82);border-radius:6px;font:400 14px var(--mono);color:var(--dim);white-space:nowrap}
+.radio b{color:var(--sun);font-weight:400;letter-spacing:.12em}
+.radio span{display:inline-block;padding:7px 0;padding-left:100%;animation:radio 38s linear infinite}
+@keyframes radio{to{transform:translateX(-100%)}}
+@media(prefers-reduced-motion:reduce){.radio span{animation:none;padding-left:12px}}
+#splash .cap{background:linear-gradient(rgba(17,4,30,.9),rgba(30,8,50,.82));border:1px solid rgba(255,61,154,.55);border-radius:6px;box-shadow:0 0 40px rgba(255,61,154,.25)}
+#splash .cap h2{font-style:italic;transform:none;border:0;padding:0;text-shadow:0 3px 0 #000,0 0 24px rgba(255,61,154,.6)}
+#splash .cap p{color:#ffe9f6}
+#splash .slog{border-color:rgba(255,210,74,.45);background:rgba(17,4,30,.82)}
 @keyframes rise{0%{opacity:0;transform:translateY(10px)}35%{opacity:0}100%{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){#splash{display:none}#splash .cap{animation:none}}
 </style>
@@ -132,7 +158,7 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
 
 <div class="wrap">
 <header>
-  <div class="logo"><span id="logoicon" style="display:inline-flex;width:28px;height:28px"></span>Wanted<span class="net" id="net">devnet</span></div>
+  <div class="logo"><span id="logoicon" style="display:inline-flex;width:28px;height:28px"></span>Wanted<span class="net" id="net">devnet</span><span class="hud" aria-label="Wanted level, five stars"><span class="stars" aria-hidden="true">★★★★★</span><small>WANTED LEVEL</small></span></div>
   <div class="ticker" id="ticker" hidden>
     <span class="tk" title="Bitcoin"><svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><circle cx="16" cy="16" r="16" fill="#f7931a"/><text x="16" y="23" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="700" font-size="21" fill="#fff">₿</text></svg><b id="pbtc">…</b></span>
     <span class="tk" title="Solana"><svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><defs><linearGradient id="solg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#9945ff"/><stop offset="1" stop-color="#14f195"/></linearGradient></defs><circle cx="16" cy="16" r="16" fill="#12141c"/><g fill="url(#solg)"><path d="M10 20h13l-2 2.800H8zM10 9.200h13l-2 2.800H8zM8 14.600h13l2 2.800H10z"/></g></svg><b id="psol">…</b></span>
@@ -140,8 +166,11 @@ footer button{background:none;border:0;color:var(--gold);font:inherit;cursor:poi
   <button class="wallet" id="wbtn" type="button"><span id="wlabel">Connect Phantom</span></button>
 </header>
 
+<div class="mission">NEW MISSION</div>
 <h1>Make your move. <span>Launch a coin.</span></h1>
 <p class="lede">The headlines say World War 3. The rumours say a 90-day blackout. While the city panics, make your move. Every coin launched here claims one of the eight most wanted crooks as its logo (a robber, a driver, a safecracker, a hacker, a boss, a lookout, a muscle man or an accountant), and it stays with that coin for good. Each one reports the coin’s public numbers, read from the chain.</p>
+
+<div class="radio" aria-hidden="true"><span><b>WANTED FM</b> &nbsp;▶ Now playing: Midnight on Ocean Drive &nbsp;·&nbsp; <b>NEWS</b> 4 suspects in custody, 8 still at large &nbsp;·&nbsp; <b>TRAFFIC</b> Sirens on 5th street &nbsp;·&nbsp; <b>TIP</b> Every coin gets a case file &nbsp;·&nbsp; <b>WEATHER</b> Clear, 5 stars</span></div>
 
 <div class="founder" id="founder" hidden></div>
 
